@@ -13,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { FONT_FAMILY } from "../../constants/fonts";
 
@@ -37,7 +36,7 @@ export default function SignIn() {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
       <LinearGradient
         colors={["#EEE7FF", "#EEE7FF", "#EEE7FF"]}
@@ -134,7 +133,7 @@ export default function SignIn() {
           </View>
         </KeyboardAwareScrollView>
       </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -158,6 +157,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingVertical: 40,
   },
   backChip: {
     width: 40,

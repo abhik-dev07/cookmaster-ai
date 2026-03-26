@@ -210,7 +210,8 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: "#D0C4FF",
-    paddingVertical: 14,
+    paddingVertical: 20,
+    paddingBottom: 20,
   },
 
   screen: {
