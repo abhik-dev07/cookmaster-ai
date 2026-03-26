@@ -17,23 +17,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { FONT_FAMILY } from "../../constants/fonts";
 
-export default function SignIn() {
+function SignUp() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleEmailPasswordSignIn = () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert("Missing fields", "Please enter email and password.");
+  const handleCreateAccount = () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      Alert.alert("Missing fields", "Please fill all fields to continue.");
       return;
     }
 
-    Alert.alert("Sign in", "Email/password sign-in clicked.");
+    Alert.alert("Create account", "Sign-up clicked.");
   };
 
-  const handleGoogleSignIn = () => {
-    Alert.alert("Google sign in", "Google sign-in clicked.");
+  const handleGoogleSignUp = () => {
+    Alert.alert("Google sign up", "Google sign-up clicked.");
   };
 
   return (
@@ -55,17 +56,28 @@ export default function SignIn() {
             <Pressable style={styles.backChip} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={18} color="#232433" />
             </Pressable>
-            <Text style={styles.headerHint}>Welcome Back</Text>
+            <Text style={styles.headerHint}>Create Account</Text>
           </View>
 
           <View style={styles.titleGroup}>
-            <Text style={styles.title}>Sign In</Text>
+            <Text style={styles.title}>Sign Up</Text>
             <Text style={styles.subtitle}>
-              Continue with your account to access your saved recipes.
+              Start your cooking journey and save your favorite recipes.
             </Text>
           </View>
 
           <View style={styles.card}>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Name</Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="Your full name"
+                placeholderTextColor="#A0A5B3"
+                style={styles.input}
+              />
+            </View>
+
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Email</Text>
               <TextInput
@@ -85,7 +97,7 @@ export default function SignIn() {
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   placeholderTextColor="#A0A5B3"
                   secureTextEntry={!showPassword}
                   style={styles.input}
@@ -105,9 +117,9 @@ export default function SignIn() {
 
             <Pressable
               style={styles.primaryButton}
-              onPress={handleEmailPasswordSignIn}
+              onPress={handleCreateAccount}
             >
-              <Text style={styles.primaryButtonText}>Sign In</Text>
+              <Text style={styles.primaryButtonText}>Create Account</Text>
             </Pressable>
 
             <View style={styles.dividerWrap}>
@@ -116,7 +128,7 @@ export default function SignIn() {
               <View style={styles.dividerLine} />
             </View>
 
-            <Pressable style={styles.googleButton} onPress={handleGoogleSignIn}>
+            <Pressable style={styles.googleButton} onPress={handleGoogleSignUp}>
               <Image
                 source={require("../../assets/images/auth/google-logo.png")}
                 style={styles.googleLogo}
@@ -125,10 +137,12 @@ export default function SignIn() {
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </Pressable>
 
-            <View style={styles.signupPromptWrap}>
-              <Text style={styles.signupPromptText}>Don't have account ? </Text>
-              <Pressable onPress={() => router.push("/(auth)/sign-up")}>
-                <Text style={styles.signupPromptLink}>Create an account</Text>
+            <View style={styles.loginPromptWrap}>
+              <Text style={styles.loginPromptText}>
+                Already have an account ?{" "}
+              </Text>
+              <Pressable onPress={() => router.back()}>
+                <Text style={styles.loginPromptLink}>Log in</Text>
               </Pressable>
             </View>
           </View>
@@ -137,6 +151,8 @@ export default function SignIn() {
     </SafeAreaView>
   );
 }
+
+export default SignUp;
 
 const styles = StyleSheet.create({
   root: {
@@ -286,18 +302,18 @@ const styles = StyleSheet.create({
     color: "#242735",
     fontSize: 16,
   },
-  signupPromptWrap: {
+  loginPromptWrap: {
     marginTop: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  signupPromptText: {
+  loginPromptText: {
     fontFamily: FONT_FAMILY.regular,
     color: "#636879",
     fontSize: 14,
   },
-  signupPromptLink: {
+  loginPromptLink: {
     fontFamily: FONT_FAMILY.semibold,
     color: "#5F45D8",
     fontSize: 14,
