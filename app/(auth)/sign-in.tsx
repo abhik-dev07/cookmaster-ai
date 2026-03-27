@@ -1,38 +1,160 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { Href, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import { useContext, useState } from "react";
 import {
-  Alert,
   Image,
   Pressable,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
+import { useSignIn } from "@clerk/expo";
+import { useMutation } from "convex/react";
 import { FONT_FAMILY } from "../../constants/fonts";
+import { User, UserContext } from "../../context/UserContext";
+import { api } from "../../convex/_generated/api";
+import {
+  hideToast,
+  showErrorToast,
+  showPendingToast,
+  showSuccessToast,
+} from "../../utils/toast";
 
 export default function SignIn() {
+  const { signIn } = useSignIn();
+  const { setUser } = useContext(UserContext);
+  const upsertConvexUser = useMutation(api.users.upsertFromAuth);
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleEmailPasswordSignIn = () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert("Missing fields", "Please enter email and password.");
+  const handleEmailPasswordSignIn = async () => {
+    setLoading(true);
+
+    if (!emailAddress.trim() || !password.trim()) {
+      showErrorToast("Missing fields", "Please enter email and password.");
+      setLoading(false);
       return;
     }
 
-    Alert.alert("Sign in", "Email/password sign-in clicked.");
+    showPendingToast("Signing in", "Checking your credentials...");
+
+    try {
+      const signInAttempt = await signIn.password({
+        emailAddress,
+        password,
+      });
+
+      if (signInAttempt.error) {
+        console.error(JSON.stringify(signInAttempt.error, null, 2));
+        showErrorToast(
+          "Sign in failed",
+          "Invalid credentials. Please try again.",
+        );
+        return;
+      }
+
+      if (signIn.status === "complete") {
+        await signIn.finalize({
+          navigate: async ({ session, decorateUrl }) => {
+            if (session?.currentTask) {
+              console.log(session.currentTask);
+              showErrorToast(
+                "Sign in",
+                "Could not complete sign-in. Please try again.",
+              );
+              return;
+            }
+
+            const authUserId = (session as any)?.user?.id ?? session?.id ?? "";
+            const authEmail =
+              (session as any)?.user?.primaryEmailAddress?.emailAddress ??
+              emailAddress;
+            const authName =
+              (session as any)?.user?.fullName ??
+              (session as any)?.user?.firstName ??
+              "CookMaster User";
+            const authPicture = (session as any)?.user?.imageUrl;
+
+            const convexUser = await upsertConvexUser({
+              clerkUserId: String(authUserId),
+              email: authEmail,
+              name: authName,
+              picture: authPicture,
+            });
+
+            const signedInUser: User = {
+              id: convexUser._id,
+              email: convexUser.email,
+              name: convexUser.name,
+              picture: convexUser.picture,
+              credits: convexUser.credits,
+              pref: convexUser.pref,
+              created_at: convexUser.created_at,
+              updated_at: convexUser.updated_at,
+            };
+
+            await SecureStore.setItemAsync(
+              "user_session",
+              JSON.stringify({
+                sessionId: session?.id,
+                userId: signedInUser.id,
+                email: signedInUser.email,
+              }),
+            );
+            await SecureStore.setItemAsync(
+              "user_context",
+              JSON.stringify(signedInUser),
+            );
+
+            setUser(signedInUser);
+
+            const url = decorateUrl("/");
+            if (url.startsWith("http")) {
+              showSuccessToast(
+                "Welcome back",
+                "You have signed in successfully.",
+              );
+              window.location.href = url;
+            } else {
+              showSuccessToast(
+                "Welcome back",
+                "You have signed in successfully.",
+              );
+              router.push(url as Href);
+            }
+          },
+        });
+        return;
+      }
+
+      showErrorToast("Sign in failed", "Could not complete sign-in.");
+    } catch (error) {
+      console.error(error);
+      showErrorToast(
+        "Sign in failed",
+        "Something went wrong. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleSignIn = () => {
-    Alert.alert("Google sign in", "Google sign-in clicked.");
+    showPendingToast("Coming soon", "Google sign-in is not configured yet.");
+    setTimeout(() => {
+      hideToast();
+      showErrorToast("Unavailable", "Google sign-in is not configured yet.");
+    }, 600);
   };
 
   return (
@@ -68,8 +190,8 @@ export default function SignIn() {
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Email</Text>
               <TextInput
-                value={email}
-                onChangeText={setEmail}
+                value={emailAddress}
+                onChangeText={setEmailAddress}
                 placeholder="you@example.com"
                 placeholderTextColor="#A0A5B3"
                 keyboardType="email-address"
@@ -102,12 +224,16 @@ export default function SignIn() {
               </View>
             </View>
 
-            <Pressable
-              style={styles.primaryButton}
+            <TouchableOpacity
+              style={[styles.primaryButton, loading && styles.buttonDisabled]}
               onPress={handleEmailPasswordSignIn}
+              disabled={loading}
+              activeOpacity={0.8}
             >
-              <Text style={styles.primaryButtonText}>Sign In</Text>
-            </Pressable>
+              <Text style={styles.primaryButtonText}>
+                {loading ? "Signing In..." : "Sign In"}
+              </Text>
+            </TouchableOpacity>
 
             <View style={styles.dividerWrap}>
               <View style={styles.dividerLine} />
@@ -243,6 +369,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 6,
     backgroundColor: "#7E64F2",
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   primaryButtonText: {
     fontFamily: FONT_FAMILY.semibold,

@@ -1,39 +1,471 @@
+import { useAuth, useSignUp } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   Image,
   Pressable,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 import { FONT_FAMILY } from "../../constants/fonts";
+import {
+  hideToast,
+  showErrorToast,
+  showPendingToast,
+  showSuccessToast,
+} from "../../utils/toast";
 
 function SignUp() {
+  const { signUp } = useSignUp();
+  const { signOut } = useAuth();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleCreateAccount = () => {
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Missing fields", "Please fill all fields to continue.");
+  const splitName = (fullName: string) => {
+    const clean = fullName.trim().replace(/\s+/g, " ");
+    if (!clean) {
+      return { firstName: "", lastName: "" };
+    }
+
+    const [firstName, ...rest] = clean.split(" ");
+    return { firstName, lastName: rest.join(" ") };
+  };
+
+  const buildUsernameCandidates = () => {
+    const emailLocalPart = email.trim().toLowerCase().split("@")[0] ?? "";
+    const normalizedFromEmail = emailLocalPart
+      .replace(/[^a-z0-9_]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "");
+
+    const normalizedFromName = name
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "");
+
+    const base = (normalizedFromEmail || normalizedFromName || "cookmasteruser")
+      .slice(0, 24)
+      .padEnd(3, "0");
+
+    const suffix = `${Date.now()}`.slice(-6);
+
+    return [base, `${base}_${suffix}`];
+  };
+
+  const completeMissingFieldsIfRequired = async (): Promise<boolean> => {
+    if (signUp.status === "complete") {
+      return true;
+    }
+
+    const missingFields = new Set(signUp.missingFields ?? []);
+    const needsFirstName = missingFields.has("first_name");
+    const needsLastName = missingFields.has("last_name");
+    const needsUsername = missingFields.has("username");
+
+    if (!needsFirstName && !needsLastName && !needsUsername) {
+      return false;
+    }
+
+    const { firstName, lastName } = splitName(name);
+    const updates: Record<string, string> = {};
+
+    if (needsFirstName && !firstName) {
+      hideToast();
+      showErrorToast(
+        "Name required",
+        "Please enter your full name to finish creating your account.",
+      );
+      return false;
+    }
+
+    if (needsLastName && !lastName) {
+      hideToast();
+      showErrorToast(
+        "Last name required",
+        "Please include both first and last name to finish sign-up.",
+      );
+      return false;
+    }
+
+    if (needsFirstName) {
+      updates.firstName = firstName;
+    }
+
+    if (needsLastName) {
+      updates.lastName = lastName;
+    }
+
+    const applyUpdate = async (payload: Record<string, string>) => {
+      const { error } = await signUp.update(payload);
+
+      if (!error) {
+        return { ok: true, retry: false };
+      }
+
+      const updateErrorCode = (error as any)?.errors?.[0]?.code;
+      const updateErrorParam = (error as any)?.errors?.[0]?.meta?.paramName;
+
+      if (
+        updateErrorCode === "form_param_unknown" &&
+        [
+          "first_name",
+          "last_name",
+          "firstName",
+          "lastName",
+          "username",
+        ].includes(updateErrorParam)
+      ) {
+        return { ok: true, retry: false };
+      }
+
+      const shouldRetryUsername =
+        updateErrorParam === "username" &&
+        (updateErrorCode === "form_identifier_exists" ||
+          updateErrorCode === "form_param_format_invalid" ||
+          updateErrorCode === "form_param_value_invalid");
+
+      if (shouldRetryUsername) {
+        return { ok: false, retry: true };
+      }
+
+      hideToast();
+      const updateMessage =
+        (error as any)?.errors?.[0]?.longMessage ??
+        (error as any)?.errors?.[0]?.message ??
+        "Could not save your profile details.";
+      showErrorToast("Sign up failed", updateMessage);
+      return { ok: false, retry: false };
+    };
+
+    if (needsUsername) {
+      const candidates = buildUsernameCandidates();
+
+      for (const candidate of candidates) {
+        const result = await applyUpdate({ ...updates, username: candidate });
+        if (result.ok) {
+          await (signUp as any).reload?.();
+          return true;
+        }
+
+        if (!result.retry) {
+          return false;
+        }
+      }
+
+      hideToast();
+      showErrorToast(
+        "Username unavailable",
+        "Could not generate an available username. Please try again.",
+      );
+      return false;
+    }
+
+    const updateResult = await applyUpdate(updates);
+    if (updateResult.ok) {
+      await (signUp as any).reload?.();
+    }
+    return updateResult.ok;
+  };
+
+  const completeVerifiedSignUp = async () => {
+    hideToast();
+
+    const readyToFinalize = await completeMissingFieldsIfRequired();
+    if (!readyToFinalize) {
       return;
     }
 
-    Alert.alert("Create account", "Sign-up clicked.");
+    if (signUp.status !== "complete") {
+      const remainingFields =
+        (signUp.missingFields ?? []).join(", ") || "unknown";
+      hideToast();
+      showErrorToast(
+        "Sign up incomplete",
+        `Additional required fields are still missing: ${remainingFields}.`,
+      );
+      return;
+    }
+
+    const finalizeResult = await signUp.finalize({
+      navigate: async ({ session }) => {
+        if (session?.currentTask) {
+          hideToast();
+          showErrorToast(
+            "Action required",
+            "Please complete the pending account task to continue.",
+          );
+          return;
+        }
+
+        const clerkUserId =
+          (session as any)?.user?.id ?? (signUp as any)?.createdUserId;
+
+        if (!clerkUserId) {
+          hideToast();
+          showErrorToast(
+            "Sign up failed",
+            "Could not find a Clerk user id after verification.",
+          );
+          return;
+        }
+
+        hideToast();
+        showSuccessToast(
+          "Account created",
+          "Log in. Make some amazing dishes.",
+        );
+
+        void signOut()
+          .catch((error) => {
+            console.error("[sign-up] signOut after finalize failed", error);
+          })
+          .finally(() => {
+            router.replace("/sign-in");
+          });
+      },
+    });
+
+    if (finalizeResult?.error) {
+      hideToast();
+      const finalizeError = (finalizeResult as any)?.error;
+      const finalizeMessage =
+        finalizeError?.errors?.[0]?.longMessage ??
+        finalizeError?.errors?.[0]?.message ??
+        "Could not finalize sign-up. Please try again.";
+      showErrorToast("Sign up failed", finalizeMessage);
+    }
+  };
+
+  const getClerkErrorMessage = (error: any): string => {
+    const firstError = error?.errors?.[0];
+    const errorCode = firstError?.code;
+
+    if (errorCode === "form_password_pwned") {
+      return "This password was found in a known data breach. Please use a different password.";
+    }
+
+    if (
+      errorCode === "form_param_unknown" &&
+      firstError?.meta?.paramName === "first_name"
+    ) {
+      return "Sign-up request included an unsupported field. Please try again.";
+    }
+
+    if (errorCode === "form_identifier_exists") {
+      return "This email is already registered in Clerk. Please log in.";
+    }
+
+    return (
+      firstError?.longMessage ??
+      firstError?.message ??
+      "Unable to create account right now."
+    );
+  };
+
+  const handleCreateAccount = async () => {
+    setLoading(true);
+
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      showErrorToast("Missing fields", "Please fill all fields to continue.");
+      setLoading(false);
+      return;
+    }
+
+    showPendingToast("Creating account", "Preparing your sign-up...");
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const { firstName, lastName } = splitName(name);
+
+      if (!firstName || !lastName) {
+        hideToast();
+        showErrorToast(
+          "Full name required",
+          "Please enter both first and last name.",
+        );
+        return;
+      }
+
+      const usernameCandidates = buildUsernameCandidates();
+      let passwordResult: { error: unknown | null } | null = null;
+
+      for (const username of usernameCandidates) {
+        passwordResult = await signUp.password({
+          emailAddress: normalizedEmail,
+          password,
+          firstName,
+          lastName,
+          username,
+        });
+
+        if (!passwordResult.error) {
+          break;
+        }
+
+        const errorCode = (passwordResult.error as any)?.errors?.[0]?.code;
+        const errorParam = (passwordResult.error as any)?.errors?.[0]?.meta
+          ?.paramName;
+        const isUsernameRetryable =
+          errorParam === "username" &&
+          (errorCode === "form_identifier_exists" ||
+            errorCode === "form_param_format_invalid" ||
+            errorCode === "form_param_value_invalid");
+
+        if (!isUsernameRetryable) {
+          break;
+        }
+      }
+
+      if (!passwordResult || passwordResult.error) {
+        console.error(JSON.stringify(passwordResult?.error, null, 2));
+        showErrorToast(
+          "Sign up failed",
+          getClerkErrorMessage(passwordResult?.error),
+        );
+        return;
+      }
+
+      const sendCodeResult = await signUp.verifications.sendEmailCode();
+      if (sendCodeResult.error) {
+        const sendCodeErrorCode = (sendCodeResult.error as any)?.errors?.[0]
+          ?.code;
+        if (sendCodeErrorCode === "verification_already_verified") {
+          await completeVerifiedSignUp();
+          return;
+        }
+
+        console.error(JSON.stringify(sendCodeResult.error, null, 2));
+        showErrorToast(
+          "Verification failed",
+          "Could not send verification code to email.",
+        );
+        return;
+      }
+
+      setAwaitingVerification(true);
+      showSuccessToast(
+        "Check your email",
+        "We sent a verification code to your email.",
+      );
+    } catch (error) {
+      console.error(error);
+      showErrorToast(
+        "Sign up failed",
+        "Something went wrong. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyEmailCode = async () => {
+    setLoading(true);
+
+    if (!verificationCode.trim()) {
+      showErrorToast("Missing code", "Please enter the verification code.");
+      setLoading(false);
+      return;
+    }
+
+    showPendingToast("Verifying code", "Checking your verification code...");
+
+    try {
+      const verifyResult = await signUp.verifications.verifyEmailCode({
+        code: verificationCode.trim(),
+      });
+
+      if (verifyResult.error) {
+        const verifyErrorCode = (verifyResult.error as any)?.errors?.[0]?.code;
+        if (verifyErrorCode === "verification_already_verified") {
+          await completeVerifiedSignUp();
+          return;
+        }
+
+        const verifyErrorMessage =
+          (verifyResult.error as any)?.errors?.[0]?.longMessage ??
+          "Please enter a valid verification code.";
+        console.error(JSON.stringify(verifyResult.error, null, 2));
+        hideToast();
+        showErrorToast("Invalid code", verifyErrorMessage);
+        return;
+      }
+
+      if (__DEV__) {
+        console.log("[sign-up] verification state", {
+          status: signUp.status,
+          missingFields: signUp.missingFields,
+        });
+      }
+
+      await completeVerifiedSignUp();
+    } catch (error) {
+      console.error(error);
+      hideToast();
+      showErrorToast(
+        "Verification failed",
+        "Something went wrong. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleSignUp = () => {
-    Alert.alert("Google sign up", "Google sign-up clicked.");
+    showPendingToast("Coming soon", "Google sign-up is not configured yet.");
+    setTimeout(() => {
+      hideToast();
+      showErrorToast("Unavailable", "Google sign-up is not configured yet.");
+    }, 600);
+  };
+
+  const handleResendVerificationCode = async () => {
+    setLoading(true);
+    showPendingToast("Resending code", "Sending a new verification code...");
+
+    try {
+      const resendResult = await signUp.verifications.sendEmailCode();
+
+      if (resendResult.error) {
+        const resendErrorCode = (resendResult.error as any)?.errors?.[0]?.code;
+        if (resendErrorCode === "verification_already_verified") {
+          await completeVerifiedSignUp();
+          return;
+        }
+
+        const resendErrorMessage =
+          (resendResult.error as any)?.errors?.[0]?.longMessage ??
+          "Could not resend verification code.";
+        hideToast();
+        showErrorToast("Error", resendErrorMessage);
+        return;
+      }
+
+      hideToast();
+      showSuccessToast("Code sent", "A new verification code was sent.");
+    } catch (error) {
+      console.error(error);
+      hideToast();
+      showErrorToast("Error", "Could not resend verification code.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,60 +498,108 @@ function SignUp() {
           </View>
 
           <View style={styles.card}>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Name</Text>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="Your full name"
-                placeholderTextColor="#A0A5B3"
-                style={styles.input}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Email</Text>
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                placeholder="you@example.com"
-                placeholderTextColor="#A0A5B3"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                style={styles.input}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Password</Text>
-              <View style={styles.passwordWrap}>
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Create a password"
-                  placeholderTextColor="#A0A5B3"
-                  secureTextEntry={!showPassword}
-                  style={styles.input}
-                />
-                <Pressable
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword((prev) => !prev)}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-off" : "eye"}
-                    size={20}
-                    color="#6D7285"
+            {!awaitingVerification ? (
+              <>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Name</Text>
+                  <TextInput
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Your full name"
+                    placeholderTextColor="#A0A5B3"
+                    style={styles.input}
                   />
-                </Pressable>
-              </View>
-            </View>
+                </View>
 
-            <Pressable
-              style={styles.primaryButton}
-              onPress={handleCreateAccount}
-            >
-              <Text style={styles.primaryButtonText}>Create Account</Text>
-            </Pressable>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Email</Text>
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="you@example.com"
+                    placeholderTextColor="#A0A5B3"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    style={styles.input}
+                  />
+                </View>
+
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Password</Text>
+                  <View style={styles.passwordWrap}>
+                    <TextInput
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Create a password"
+                      placeholderTextColor="#A0A5B3"
+                      secureTextEntry={!showPassword}
+                      style={styles.input}
+                    />
+                    <Pressable
+                      style={styles.eyeButton}
+                      onPress={() => setShowPassword((prev) => !prev)}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off" : "eye"}
+                        size={20}
+                        color="#6D7285"
+                      />
+                    </Pressable>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.primaryButton,
+                    loading && styles.buttonDisabled,
+                  ]}
+                  onPress={handleCreateAccount}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.primaryButtonText}>
+                    {loading ? "Creating..." : "Create Account"}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Verification Code</Text>
+                  <TextInput
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    placeholder="Enter code from email"
+                    placeholderTextColor="#A0A5B3"
+                    keyboardType="number-pad"
+                    autoCapitalize="none"
+                    style={styles.input}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.primaryButton,
+                    loading && styles.buttonDisabled,
+                  ]}
+                  onPress={handleVerifyEmailCode}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.primaryButtonText}>
+                    {loading ? "Verifying..." : "Verify Email"}
+                  </Text>
+                </TouchableOpacity>
+
+                <Pressable
+                  style={styles.resendCodeButton}
+                  onPress={handleResendVerificationCode}
+                  disabled={loading}
+                >
+                  <Text style={styles.resendCodeText}>Resend code</Text>
+                </Pressable>
+              </>
+            )}
 
             <View style={styles.dividerWrap}>
               <View style={styles.dividerLine} />
@@ -264,6 +744,18 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.semibold,
     color: "#FFFFFF",
     fontSize: 17,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  resendCodeButton: {
+    marginTop: 12,
+    alignItems: "center",
+  },
+  resendCodeText: {
+    fontFamily: FONT_FAMILY.semibold,
+    color: "#5F45D8",
+    fontSize: 14,
   },
   dividerWrap: {
     marginVertical: 16,

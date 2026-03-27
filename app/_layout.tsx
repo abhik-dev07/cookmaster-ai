@@ -1,12 +1,33 @@
+import { ClerkProvider } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { StyleProp, Text, TextInput, TextStyle } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-
+import Toast from "react-native-toast-message";
+import { appToastConfig } from "../components/AppToast";
 import { FONT_FAMILY } from "../constants/fonts";
+import { UserContextProvider } from "../context/UserContext";
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+if (!publishableKey) {
+  throw new Error("Add your Clerk Publishable Key to the .env file");
+}
+
+const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL!;
+
+if (!convexUrl) {
+  throw new Error(
+    "Missing EXPO_PUBLIC_CONVEX_URL. Add it to your .env file and restart Expo.",
+  );
+}
+
+const convex = new ConvexReactClient(convexUrl);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -59,10 +80,17 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardProvider>
-        <Stack screenOptions={{ headerShown: false }} />
-      </KeyboardProvider>
-    </GestureHandlerRootView>
+    <ConvexProvider client={convex}>
+      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <UserContextProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
+              <Slot />
+            </KeyboardProvider>
+            <Toast config={appToastConfig} />
+          </GestureHandlerRootView>
+        </UserContextProvider>
+      </ClerkProvider>
+    </ConvexProvider>
   );
 }
