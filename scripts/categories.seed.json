@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Breakfast",
+    "image_link": "https://i.ibb.co/LDST4zrS/breakfast.png"
+  },
+  {
+    "name": "Lunch",
+    "image_link": "https://i.ibb.co/N2ztKfcS/lunch.png"
+  },
+  {
+    "name": "Dinner",
+    "image_link": "https://i.ibb.co/ksynhzYs/dinner.png"
+  },
+  {
+    "name": "Dessert",
+    "image_link": "https://i.ibb.co/dJt0vwCp/dessert.png"
+  },
+  {
+    "name": "Cake",
+    "image_link": "https://i.ibb.co/fVp5N1x8/cake.png"
+  },
+  {
+    "name": "Salad",
+    "image_link": "https://i.ibb.co/ZpN1YXRN/salad.png"
+  },
+  {
+    "name": "Drink",
+    "image_link": "https://i.ibb.co/jkcWQZsT/drink.png"
+  },
+  {
+    "name": "Fast Food",
+    "image_link": "https://i.ibb.co/Wpx6f2Db/Fast-Food.png"
+  }
+]
