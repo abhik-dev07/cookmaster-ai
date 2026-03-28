@@ -674,20 +674,20 @@ const styles = StyleSheet.create({
     color: "#5E6170",
   },
   titleGroup: {
-    marginTop: 26,
     marginBottom: 20,
   },
   title: {
     fontFamily: FONT_FAMILY.bold,
     fontSize: 42,
     color: "#191B24",
-    marginBottom: 8,
+    bottom: 10,
   },
   subtitle: {
     fontFamily: FONT_FAMILY.regular,
     fontSize: 16,
     lineHeight: 24,
     color: "#55586A",
+    bottom: 5,
   },
   card: {
     borderRadius: 26,
@@ -699,6 +699,7 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
+    bottom: 15,
   },
   fieldGroup: {
     marginBottom: 14,

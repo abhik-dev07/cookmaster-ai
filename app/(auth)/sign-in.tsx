@@ -37,6 +37,77 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const finalizeSignedInSession = async () => {
+    await signIn.finalize({
+      navigate: async ({ session, decorateUrl }) => {
+        if (session?.currentTask) {
+          console.log(session.currentTask);
+          showErrorToast(
+            "Sign in",
+            "Could not complete sign-in. Please try again.",
+          );
+          return;
+        }
+
+        const authUserId = (session as any)?.user?.id ?? session?.id ?? "";
+        const authEmail =
+          (session as any)?.user?.primaryEmailAddress?.emailAddress ??
+          emailAddress;
+        const authName =
+          (session as any)?.user?.fullName ??
+          (session as any)?.user?.firstName ??
+          "CookMaster User";
+        const authPicture = (session as any)?.user?.imageUrl;
+
+        const convexUser = await upsertConvexUser({
+          clerkUserId: String(authUserId),
+          email: authEmail,
+          name: authName,
+          picture: authPicture,
+        });
+
+        const signedInUser: User = {
+          id: convexUser._id,
+          email: convexUser.email,
+          name: convexUser.name,
+          picture: convexUser.picture,
+          credits: convexUser.credits,
+          pref: convexUser.pref,
+          created_at: convexUser.created_at,
+          updated_at: convexUser.updated_at,
+        };
+
+        await SecureStore.setItemAsync(
+          "user_session",
+          JSON.stringify({
+            sessionId: session?.id,
+            userId: signedInUser.id,
+            email: signedInUser.email,
+          }),
+        );
+        await SecureStore.setItemAsync(
+          "user_context",
+          JSON.stringify(signedInUser),
+        );
+
+        setUser(signedInUser);
+
+        const homeRoute: Href = "/home";
+        const url = decorateUrl(homeRoute);
+        const isWebHttpUrl =
+          typeof window !== "undefined" && url.startsWith("http");
+
+        if (isWebHttpUrl) {
+          showSuccessToast("Welcome back", "You have signed in successfully.");
+          window.location.href = url;
+        } else {
+          showSuccessToast("Welcome back", "You have signed in successfully.");
+          router.replace(homeRoute);
+        }
+      },
+    });
+  };
+
   const handleEmailPasswordSignIn = async () => {
     setLoading(true);
 
@@ -63,81 +134,35 @@ export default function SignIn() {
         return;
       }
 
-      if (signIn.status === "complete") {
-        await signIn.finalize({
-          navigate: async ({ session, decorateUrl }) => {
-            if (session?.currentTask) {
-              console.log(session.currentTask);
-              showErrorToast(
-                "Sign in",
-                "Could not complete sign-in. Please try again.",
-              );
-              return;
-            }
+      const signInStatus =
+        (signIn as any)?.status ?? (signInAttempt as any)?.status;
 
-            const authUserId = (session as any)?.user?.id ?? session?.id ?? "";
-            const authEmail =
-              (session as any)?.user?.primaryEmailAddress?.emailAddress ??
-              emailAddress;
-            const authName =
-              (session as any)?.user?.fullName ??
-              (session as any)?.user?.firstName ??
-              "CookMaster User";
-            const authPicture = (session as any)?.user?.imageUrl;
+      if (signInStatus !== "complete") {
+        if (signInStatus === "needs_second_factor") {
+          showErrorToast(
+            "Password sign-in blocked",
+            "This account requires multi-factor authentication in Clerk.",
+          );
+          return;
+        }
 
-            const convexUser = await upsertConvexUser({
-              clerkUserId: String(authUserId),
-              email: authEmail,
-              name: authName,
-              picture: authPicture,
-            });
+        if (signInStatus === "needs_client_trust") {
+          showErrorToast(
+            "Password sign-in blocked",
+            "Clerk is requiring device verification for this login. Disable it in Clerk dashboard security settings if you want password-only sign-in.",
+          );
+          return;
+        }
 
-            const signedInUser: User = {
-              id: convexUser._id,
-              email: convexUser.email,
-              name: convexUser.name,
-              picture: convexUser.picture,
-              credits: convexUser.credits,
-              pref: convexUser.pref,
-              created_at: convexUser.created_at,
-              updated_at: convexUser.updated_at,
-            };
-
-            await SecureStore.setItemAsync(
-              "user_session",
-              JSON.stringify({
-                sessionId: session?.id,
-                userId: signedInUser.id,
-                email: signedInUser.email,
-              }),
-            );
-            await SecureStore.setItemAsync(
-              "user_context",
-              JSON.stringify(signedInUser),
-            );
-
-            setUser(signedInUser);
-
-            const url = decorateUrl("/");
-            if (url.startsWith("http")) {
-              showSuccessToast(
-                "Welcome back",
-                "You have signed in successfully.",
-              );
-              window.location.href = url;
-            } else {
-              showSuccessToast(
-                "Welcome back",
-                "You have signed in successfully.",
-              );
-              router.push(url as Href);
-            }
-          },
-        });
+        showErrorToast(
+          "Sign in incomplete",
+          "Your account could not be signed in yet. Please try again.",
+        );
         return;
       }
 
-      showErrorToast("Sign in failed", "Could not complete sign-in.");
+      await finalizeSignedInSession();
+      return;
     } catch (error) {
       console.error(error);
       showErrorToast(
@@ -251,7 +276,9 @@ export default function SignIn() {
             </Pressable>
 
             <View style={styles.signupPromptWrap}>
-              <Text style={styles.signupPromptText}>Don't have account ? </Text>
+              <Text style={styles.signupPromptText}>
+                Don&apos;t have account ?{" "}
+              </Text>
               <Pressable onPress={() => router.push("/(auth)/sign-up")}>
                 <Text style={styles.signupPromptLink}>Create an account</Text>
               </Pressable>
@@ -304,7 +331,6 @@ const styles = StyleSheet.create({
     color: "#5E6170",
   },
   titleGroup: {
-    marginTop: 26,
     marginBottom: 20,
   },
   title: {
