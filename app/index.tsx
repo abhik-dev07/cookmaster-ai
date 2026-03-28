@@ -6,6 +6,7 @@ import { useCallback, useEffect } from "react";
 import {
   Image,
   LayoutChangeEvent,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -140,7 +141,7 @@ export default function Index() {
   });
 
   return (
-    <View style={styles.root}>
+    <ScrollView style={styles.root} showsVerticalScrollIndicator={false}>
       <StatusBar barStyle="dark-content" />
 
       <LinearGradient
@@ -202,7 +203,7 @@ export default function Index() {
           </View>
         </View>
       </LinearGradient>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -240,18 +241,18 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 55,
     fontFamily: FONT_FAMILY.bold,
-    fontSize: 50,
+    fontSize: 45,
     lineHeight: 58,
     color: "#0E0F15",
     letterSpacing: -1.6,
-    maxWidth: "70%",
+    maxWidth: "80%",
   },
   sauceCard: {
     position: "absolute",
     right: -6,
-    top: 6,
-    width: 240,
-    height: 240,
+    top: 30,
+    width: 200,
+    height: 200,
   },
   subtitle: {
     marginTop: 14,
@@ -270,9 +271,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 10,
-    marginBottom: 6,
+    marginBottom: 50,
     position: "relative",
     overflow: "hidden",
+    marginLeft: 1,
   },
   ctaIconWrap: {
     width: 44,
