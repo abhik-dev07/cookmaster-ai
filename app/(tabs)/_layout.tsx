@@ -28,19 +28,19 @@ function TabIcon({ focused, color, icon, family = "ionicons" }: TabIconProps) {
             icon as React.ComponentProps<typeof MaterialCommunityIcons>["name"]
           }
           size={TAB_ICON_SIZE}
-          color={focused ? "#2D2D2D" : "#D0C4FF"}
+          color={focused ? "#2D2D2D" : "#8966FA"}
         />
       ) : family === "octicons" ? (
         <Octicons
           name={icon as React.ComponentProps<typeof Octicons>["name"]}
           size={TAB_ICON_SIZE}
-          color={focused ? "#2D2D2D" : "#D0C4FF"}
+          color={focused ? "#2D2D2D" : "#8966FA"}
         />
       ) : (
         <Ionicons
           name={icon as React.ComponentProps<typeof Ionicons>["name"]}
           size={TAB_ICON_SIZE}
-          color={focused ? "#2D2D2D" : "#D0C4FF"}
+          color={focused ? "#2D2D2D" : "#8966FA"}
         />
       )}
     </View>
@@ -70,7 +70,7 @@ export default function TabsLayout() {
               ]}
             >
               <BlurView
-                intensity={10}
+                intensity={20}
                 tint="light"
                 style={[
                   StyleSheet.absoluteFill,
@@ -82,7 +82,7 @@ export default function TabsLayout() {
                   StyleSheet.absoluteFill,
                   {
                     backgroundColor: IOS_TAB_OVERLAY_BG,
-                    borderWidth: 1,
+                    borderRadius: 999,
                     borderColor: IOS_TAB_OVERLAY_BORDER,
                   },
                 ]}
@@ -95,7 +95,6 @@ export default function TabsLayout() {
                 {
                   backgroundColor: ANDROID_TAB_BG,
                   borderRadius: 999,
-                  borderWidth: 1,
                   borderColor: ANDROID_TAB_BORDER,
                 },
               ]}
@@ -184,14 +183,9 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 999,
     marginLeft: 31,
-    borderTopWidth: 0,
-    backgroundColor: "transparent",
     paddingHorizontal: 5,
-    borderWidth: 0,
-    overflow: "hidden",
-    elevation: 0,
-    shadowOpacity: 0,
-    shadowColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#D0C4FF",
   },
   item: {
     justifyContent: "center",
