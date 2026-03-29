@@ -19,11 +19,13 @@ export default defineSchema({
     name: v.string(),
     normalized_name: v.string(),
     image_link: v.string(),
+    category_serial: v.optional(v.number()),
     created_at: v.string(),
     updated_at: v.string(),
   })
     .index("by_normalized_name", ["normalized_name"])
-    .index("by_name", ["name"]),
+    .index("by_name", ["name"])
+    .index("by_category_serial", ["category_serial"]),
 
   categoryItems: defineTable({
     category_id: v.id("categories"),

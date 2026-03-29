@@ -7,7 +7,7 @@ function normalizeText(value: string) {
 
 async function upsertCategory(
   ctx: MutationCtx,
-  input: { name: string; image_link: string },
+  input: { name: string; image_link: string; category_serial?: number },
 ) {
   const now = new Date().toISOString();
   const normalizedName = normalizeText(input.name);
@@ -23,6 +23,7 @@ async function upsertCategory(
     await ctx.db.patch(existing._id, {
       name: input.name,
       image_link: input.image_link,
+      category_serial: input.category_serial,
       updated_at: now,
     });
 
@@ -33,6 +34,7 @@ async function upsertCategory(
     name: input.name,
     normalized_name: normalizedName,
     image_link: input.image_link,
+    category_serial: input.category_serial,
     created_at: now,
     updated_at: now,
   });
@@ -49,12 +51,24 @@ export const listCategories = query({
       name: v.string(),
       normalized_name: v.string(),
       image_link: v.string(),
+      category_serial: v.optional(v.number()),
       created_at: v.string(),
       updated_at: v.string(),
     }),
   ),
   handler: async (ctx) => {
-    return await ctx.db.query("categories").order("asc").collect();
+    const categories = await ctx.db.query("categories").collect();
+
+    return categories.sort((a, b) => {
+      const aSerial = a.category_serial ?? Number.MAX_SAFE_INTEGER;
+      const bSerial = b.category_serial ?? Number.MAX_SAFE_INTEGER;
+
+      if (aSerial !== bSerial) {
+        return aSerial - bSerial;
+      }
+
+      return a._creationTime - b._creationTime;
+    });
   },
 });
 
@@ -76,7 +90,7 @@ export const seedCategories = mutation({
     let created = 0;
     let updated = 0;
 
-    for (const category of args.categories) {
+    for (const [index, category] of args.categories.entries()) {
       const cleanName = category.name.trim();
       const cleanImageLink = category.image_link.trim();
 
@@ -87,6 +101,7 @@ export const seedCategories = mutation({
       const result = await upsertCategory(ctx, {
         name: cleanName,
         image_link: cleanImageLink,
+        category_serial: index,
       });
 
       if (result.action === "created") {
