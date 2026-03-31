@@ -6,10 +6,8 @@ import { useCallback, useEffect } from "react";
 import {
   Image,
   LayoutChangeEvent,
-  ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -28,6 +26,7 @@ import { FONT_FAMILY } from "../constants/fonts";
 const CTA_HORIZONTAL_PADDING = 10;
 const CTA_THUMB_SIZE = 44;
 const SLIDE_COMPLETE_THRESHOLD = 0.9;
+const CTA_IMAGE_SAFE_SPACE = 120;
 
 export default function Index() {
   const router = useRouter();
@@ -141,7 +140,7 @@ export default function Index() {
   });
 
   return (
-    <ScrollView style={styles.root} showsVerticalScrollIndicator={false}>
+    <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
       <LinearGradient
@@ -150,60 +149,49 @@ export default function Index() {
         end={{ x: 0.5, y: 1 }}
         style={styles.screen}
       >
-        <View style={styles.heroWrap}>
-          <Image
-            source={require("../assets/images/onboarding/onboarding.png")}
-            style={styles.heroImage}
-            resizeMode="contain"
-          />
-        </View>
-
         <View style={styles.contentWrap}>
-          <Text style={styles.title}>
-            Quick{"\n"}& Easy{"\n"}Recipes!🔥
-          </Text>
-
           <Image
-            source={require("../assets/images/onboarding/onboarding2.png")}
-            style={styles.sauceCard}
+            source={require("../assets/images/onboarding/Welcome.png")}
+            style={styles.welcomeImage}
             resizeMode="contain"
           />
+          <View style={styles.ctaWrap}>
+            <View style={styles.cta} onLayout={onCtaLayout}>
+              <Animated.Text style={[styles.ctaText, ctaTextAnimatedStyle]}>
+                Scroll to start
+              </Animated.Text>
+              <View style={styles.chevrons}>
+                <Animated.View style={chevronOneAnimatedStyle}>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={14}
+                    color="#8c8c8cbe"
+                  />
+                </Animated.View>
+                <Animated.View style={chevronTwoAnimatedStyle}>
+                  <Ionicons name="chevron-forward" size={14} color="#8C8C8C" />
+                </Animated.View>
+                <Animated.View style={chevronThreeAnimatedStyle}>
+                  <Ionicons name="chevron-forward" size={14} color="#000000" />
+                </Animated.View>
+              </View>
 
-          <Text style={styles.subtitle}>
-            Quick and easy recipes save time, taste great, and bring smiles.
-          </Text>
-
-          <View style={styles.cta} onLayout={onCtaLayout}>
-            <Animated.Text style={[styles.ctaText, ctaTextAnimatedStyle]}>
-              Scroll to start
-            </Animated.Text>
-            <View style={styles.chevrons}>
-              <Animated.View style={chevronOneAnimatedStyle}>
-                <Ionicons name="chevron-forward" size={14} color="#8c8c8cbe" />
-              </Animated.View>
-              <Animated.View style={chevronTwoAnimatedStyle}>
-                <Ionicons name="chevron-forward" size={14} color="#8C8C8C" />
-              </Animated.View>
-              <Animated.View style={chevronThreeAnimatedStyle}>
-                <Ionicons name="chevron-forward" size={14} color="#000000" />
-              </Animated.View>
+              <GestureDetector gesture={slideGesture}>
+                <Animated.View
+                  style={[
+                    styles.ctaIconWrap,
+                    styles.sliderThumb,
+                    sliderThumbAnimatedStyle,
+                  ]}
+                >
+                  <FontAwesome6 name="carrot" size={18} color="#FFFFFF" />
+                </Animated.View>
+              </GestureDetector>
             </View>
-
-            <GestureDetector gesture={slideGesture}>
-              <Animated.View
-                style={[
-                  styles.ctaIconWrap,
-                  styles.sliderThumb,
-                  sliderThumbAnimatedStyle,
-                ]}
-              >
-                <FontAwesome6 name="carrot" size={18} color="#FFFFFF" />
-              </Animated.View>
-            </GestureDetector>
           </View>
         </View>
       </LinearGradient>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -211,57 +199,28 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: "#D0C4FF",
-    paddingVertical: 20,
-    paddingBottom: 20,
   },
 
   screen: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 16,
-  },
-  heroWrap: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 2,
-    marginBottom: 8,
-  },
-  heroImage: {
-    width: "100%",
-    height: 360,
-    marginTop: 20,
   },
   contentWrap: {
     flex: 1,
     position: "relative",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
   },
-  title: {
-    marginTop: 55,
-    fontFamily: FONT_FAMILY.bold,
-    fontSize: 45,
-    lineHeight: 58,
-    color: "#0E0F15",
-    letterSpacing: -1.6,
-    maxWidth: "80%",
-  },
-  sauceCard: {
+  welcomeImage: {
     position: "absolute",
-    right: -6,
-    top: 30,
-    width: 200,
-    height: 200,
+    top: 0,
+    right: 0,
+    bottom: CTA_IMAGE_SAFE_SPACE,
+    left: 0,
+    width: "100%",
+    height: "100%",
   },
-  subtitle: {
-    marginTop: 14,
-    marginBottom: 14,
-    fontFamily: FONT_FAMILY.regular,
-    fontSize: 20,
-    lineHeight: 30,
-    color: "#4A4C59",
-    maxWidth: "100%",
+  ctaWrap: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
   },
   cta: {
     height: 64,
@@ -271,10 +230,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 10,
-    marginBottom: 50,
     position: "relative",
     overflow: "hidden",
-    marginLeft: 1,
   },
   ctaIconWrap: {
     width: 44,

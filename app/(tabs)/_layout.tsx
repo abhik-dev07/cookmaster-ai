@@ -4,7 +4,7 @@ import { Tabs } from "expo-router";
 import { Platform, StyleSheet, View } from "react-native";
 
 const TAB_ICON_SIZE = 22;
-const ANDROID_TAB_BG = "rgba(255,255,255,0.30)";
+const ANDROID_TAB_OVERLAY_BG = "rgba(255,255,255,0.24)";
 const ANDROID_TAB_BORDER = "rgba(255,255,255,0.35)";
 const IOS_TAB_OVERLAY_BG = "rgba(255,255,255,0.30)";
 const IOS_TAB_OVERLAY_BORDER = "rgba(255,255,255,0.35)";
@@ -58,8 +58,9 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: "#FFFFFF",
         tabBarItemStyle: styles.item,
         tabBarStyle: styles.tabBar,
-        tabBarBackground: () =>
-          Platform.OS === "ios" ? (
+        tabBarBackground: () => {
+          const isIOS = Platform.OS === "ios";
+          return (
             <View
               style={[
                 StyleSheet.absoluteFill,
@@ -70,8 +71,9 @@ export default function TabsLayout() {
               ]}
             >
               <BlurView
-                intensity={20}
+                intensity={isIOS ? 20 : 20}
                 tint="light"
+                experimentalBlurMethod={isIOS ? undefined : "dimezisBlurView"}
                 style={[
                   StyleSheet.absoluteFill,
                   { backgroundColor: "transparent" },
@@ -81,25 +83,19 @@ export default function TabsLayout() {
                 style={[
                   StyleSheet.absoluteFill,
                   {
-                    backgroundColor: IOS_TAB_OVERLAY_BG,
+                    backgroundColor: isIOS
+                      ? IOS_TAB_OVERLAY_BG
+                      : ANDROID_TAB_OVERLAY_BG,
                     borderRadius: 999,
-                    borderColor: IOS_TAB_OVERLAY_BORDER,
+                    borderColor: isIOS
+                      ? IOS_TAB_OVERLAY_BORDER
+                      : ANDROID_TAB_BORDER,
                   },
                 ]}
               />
             </View>
-          ) : (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                {
-                  backgroundColor: ANDROID_TAB_BG,
-                  borderRadius: 999,
-                  borderColor: ANDROID_TAB_BORDER,
-                },
-              ]}
-            />
-          ),
+          );
+        },
       }}
     >
       <Tabs.Screen
@@ -177,15 +173,24 @@ const styles = StyleSheet.create({
     width: "85%",
     left: 0,
     right: 0,
-    bottom: Platform.OS === "ios" ? 30 : 20,
+    bottom: Platform.OS === "ios" ? 30 : 5,
     alignItems: "center",
     justifyContent: "center",
     height: 70,
     borderRadius: 999,
     marginLeft: 31,
     paddingHorizontal: 5,
+    backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: "#D0C4FF",
+    elevation: 0,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
   },
   item: {
     justifyContent: "center",
@@ -199,8 +204,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 31,
+    elevation: 0,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
   },
   iconWrapActive: {
     backgroundColor: "#FFFFFF",
+    elevation: 0,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
   },
 });

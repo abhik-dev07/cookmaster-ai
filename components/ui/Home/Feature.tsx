@@ -1,18 +1,14 @@
 import { FONT_FAMILY } from "@/constants/fonts";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useMemo } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Feature() {
-  const { width } = useWindowDimensions();
+  const { width, isCompactDisplay, isLargeFont, useCompactCard } =
+    useResponsiveLayout();
 
   const featuredCardWidth = useMemo(() => {
     const horizontalPadding = 15;
@@ -27,23 +23,58 @@ export default function Feature() {
           colors={["#C9B3FF", "#B69CFF"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.featuredCard, { width: featuredCardWidth }]}
+          style={[
+            styles.featuredCard,
+            {
+              width: featuredCardWidth,
+              minHeight: useCompactCard ? 336 : 312,
+            },
+          ]}
         >
           <TouchableOpacity activeOpacity={0.85} style={styles.favoriteButton}>
             <Ionicons name="heart" size={18} color="#13131E" />
           </TouchableOpacity>
 
           <View style={styles.cardTextWrap}>
-            <Text style={styles.cardTitle}>Aegean</Text>
-            <Text style={styles.cardTitle}>Breeze Salad</Text>
+            <Text
+              style={[
+                styles.cardTitle,
+                useCompactCard && styles.cardTitleCompact,
+              ]}
+              maxFontSizeMultiplier={1.1}
+            >
+              Aegean
+            </Text>
+            <Text
+              style={[
+                styles.cardTitle,
+                useCompactCard && styles.cardTitleCompact,
+              ]}
+              maxFontSizeMultiplier={1.1}
+            >
+              Breeze Salad
+            </Text>
 
             <View style={styles.timeRow}>
               <Ionicons name="time" size={15} color="#121228" />
-              <Text style={styles.timeText}>20 minutes</Text>
+              <Text
+                style={[
+                  styles.timeText,
+                  useCompactCard && styles.timeTextCompact,
+                ]}
+                maxFontSizeMultiplier={1.15}
+              >
+                20 minutes
+              </Text>
             </View>
           </View>
 
-          <View style={styles.recipeImageWrap}>
+          <View
+            style={[
+              styles.recipeImageWrap,
+              useCompactCard && styles.recipeImageWrapCompact,
+            ]}
+          >
             <Image
               source={require("../../../assets/images/onboarding/onboarding2.png")}
               style={styles.recipeImage}
@@ -52,30 +83,73 @@ export default function Feature() {
           </View>
 
           <TouchableOpacity activeOpacity={0.85} style={styles.seeRecipeButton}>
-            <Text style={styles.seeRecipeText}>See Recipe</Text>
+            <Text
+              style={[
+                styles.seeRecipeText,
+                useCompactCard && styles.seeRecipeTextCompact,
+              ]}
+              maxFontSizeMultiplier={1.15}
+            >
+              See Recipe
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
         <LinearGradient
           colors={["#C9B3FF", "#B69CFF"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.featuredCard, { width: featuredCardWidth }]}
+          style={[
+            styles.featuredCard,
+            {
+              width: featuredCardWidth,
+              minHeight: useCompactCard ? 336 : 312,
+            },
+          ]}
         >
           <TouchableOpacity activeOpacity={0.85} style={styles.favoriteButton}>
             <Ionicons name="heart" size={18} color="#13131E" />
           </TouchableOpacity>
 
           <View style={styles.cardTextWrap}>
-            <Text style={styles.cardTitle}>Aegean</Text>
-            <Text style={styles.cardTitle}>Breeze Salad</Text>
+            <Text
+              style={[
+                styles.cardTitle,
+                useCompactCard && styles.cardTitleCompact,
+              ]}
+              maxFontSizeMultiplier={1.1}
+            >
+              Aegean
+            </Text>
+            <Text
+              style={[
+                styles.cardTitle,
+                useCompactCard && styles.cardTitleCompact,
+              ]}
+              maxFontSizeMultiplier={1.1}
+            >
+              Breeze Salad
+            </Text>
 
             <View style={styles.timeRow}>
               <Ionicons name="time" size={15} color="#121228" />
-              <Text style={styles.timeText}>20 minutes</Text>
+              <Text
+                style={[
+                  styles.timeText,
+                  useCompactCard && styles.timeTextCompact,
+                ]}
+                maxFontSizeMultiplier={1.15}
+              >
+                20 minutes
+              </Text>
             </View>
           </View>
 
-          <View style={styles.recipeImageWrap}>
+          <View
+            style={[
+              styles.recipeImageWrap,
+              useCompactCard && styles.recipeImageWrapCompact,
+            ]}
+          >
             <Image
               source={require("../../../assets/images/onboarding/onboarding2.png")}
               style={styles.recipeImage}
@@ -84,30 +158,73 @@ export default function Feature() {
           </View>
 
           <TouchableOpacity activeOpacity={0.85} style={styles.seeRecipeButton}>
-            <Text style={styles.seeRecipeText}>See Recipe</Text>
+            <Text
+              style={[
+                styles.seeRecipeText,
+                useCompactCard && styles.seeRecipeTextCompact,
+              ]}
+              maxFontSizeMultiplier={1.15}
+            >
+              See Recipe
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
         <LinearGradient
           colors={["#C9B3FF", "#B69CFF"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.featuredCard, { width: featuredCardWidth }]}
+          style={[
+            styles.featuredCard,
+            {
+              width: featuredCardWidth,
+              minHeight: useCompactCard ? 336 : 312,
+            },
+          ]}
         >
           <TouchableOpacity activeOpacity={0.85} style={styles.favoriteButton}>
             <Ionicons name="heart" size={18} color="#13131E" />
           </TouchableOpacity>
 
           <View style={styles.cardTextWrap}>
-            <Text style={styles.cardTitle}>Aegean</Text>
-            <Text style={styles.cardTitle}>Breeze Salad</Text>
+            <Text
+              style={[
+                styles.cardTitle,
+                useCompactCard && styles.cardTitleCompact,
+              ]}
+              maxFontSizeMultiplier={1.1}
+            >
+              Aegean
+            </Text>
+            <Text
+              style={[
+                styles.cardTitle,
+                useCompactCard && styles.cardTitleCompact,
+              ]}
+              maxFontSizeMultiplier={1.1}
+            >
+              Breeze Salad
+            </Text>
 
             <View style={styles.timeRow}>
               <Ionicons name="time" size={15} color="#121228" />
-              <Text style={styles.timeText}>20 minutes</Text>
+              <Text
+                style={[
+                  styles.timeText,
+                  useCompactCard && styles.timeTextCompact,
+                ]}
+                maxFontSizeMultiplier={1.15}
+              >
+                20 minutes
+              </Text>
             </View>
           </View>
 
-          <View style={styles.recipeImageWrap}>
+          <View
+            style={[
+              styles.recipeImageWrap,
+              useCompactCard && styles.recipeImageWrapCompact,
+            ]}
+          >
             <Image
               source={require("../../../assets/images/onboarding/onboarding2.png")}
               style={styles.recipeImage}
@@ -116,7 +233,15 @@ export default function Feature() {
           </View>
 
           <TouchableOpacity activeOpacity={0.85} style={styles.seeRecipeButton}>
-            <Text style={styles.seeRecipeText}>See Recipe</Text>
+            <Text
+              style={[
+                styles.seeRecipeText,
+                useCompactCard && styles.seeRecipeTextCompact,
+              ]}
+              maxFontSizeMultiplier={1.15}
+            >
+              See Recipe
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>
@@ -152,6 +277,7 @@ const styles = StyleSheet.create({
   cardTextWrap: {
     maxWidth: "56%",
     zIndex: 2,
+    flexShrink: 1,
   },
   cardTitle: {
     color: "#0E1020",
@@ -159,6 +285,10 @@ const styles = StyleSheet.create({
     lineHeight: 54,
     letterSpacing: -0.6,
     fontFamily: FONT_FAMILY.bold,
+  },
+  cardTitleCompact: {
+    fontSize: 40,
+    lineHeight: 45,
   },
   timeRow: {
     marginTop: 18,
@@ -170,6 +300,9 @@ const styles = StyleSheet.create({
     color: "#111125",
     fontSize: 20,
     fontFamily: FONT_FAMILY.medium,
+  },
+  timeTextCompact: {
+    fontSize: 17,
   },
   recipeImageWrap: {
     position: "absolute",
@@ -183,6 +316,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.66)",
     backgroundColor: "#FFFFFF",
     zIndex: 2,
+  },
+  recipeImageWrapCompact: {
+    right: -20,
+    top: 112,
+    width: 212,
+    height: 212,
+    borderRadius: 106,
   },
   recipeImage: {
     width: "100%",
@@ -204,5 +344,8 @@ const styles = StyleSheet.create({
     color: "#131329",
     fontSize: 17,
     fontFamily: FONT_FAMILY.semibold,
+  },
+  seeRecipeTextCompact: {
+    fontSize: 15,
   },
 });

@@ -5,7 +5,7 @@ import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { StyleProp, Text, TextInput, TextStyle } from "react-native";
+import { StatusBar, StyleProp, Text, TextInput, TextStyle } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
@@ -28,6 +28,7 @@ if (!convexUrl) {
 }
 
 const convex = new ConvexReactClient(convexUrl);
+const APP_BACKGROUND_COLOR = "#FFFFFF";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -83,11 +84,18 @@ export default function RootLayout() {
     <ConvexProvider client={convex}>
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
         <UserContextProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
+          <GestureHandlerRootView
+            style={{ flex: 1, backgroundColor: APP_BACKGROUND_COLOR }}
+          >
             <KeyboardProvider>
               <Slot />
             </KeyboardProvider>
             <Toast config={appToastConfig} />
+            <StatusBar
+              backgroundColor={APP_BACKGROUND_COLOR}
+              barStyle="dark-content"
+              translucent={false}
+            />
           </GestureHandlerRootView>
         </UserContextProvider>
       </ClerkProvider>

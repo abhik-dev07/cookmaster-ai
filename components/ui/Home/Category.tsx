@@ -1,5 +1,6 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { api } from "@/convex/_generated/api";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useQuery } from "convex/react";
 import { Image } from "expo-image";
 import React from "react";
@@ -24,6 +25,7 @@ const CATEGORY_COLORS = [
 
 export default function Category() {
   const categories = useQuery(api.categories.listCategories);
+  const { isCompactDisplay } = useResponsiveLayout();
 
   if (categories === undefined) {
     return (
@@ -40,10 +42,17 @@ export default function Category() {
       contentContainerStyle={styles.categoryList}
     >
       {categories.map((item, index) => (
-        <View key={item._id} style={styles.categoryItem}>
+        <View
+          key={item._id}
+          style={[
+            styles.categoryItem,
+            isCompactDisplay && styles.categoryItemCompact,
+          ]}
+        >
           <View
             style={[
               styles.categoryIconCircle,
+              isCompactDisplay && styles.categoryIconCircleCompact,
               {
                 backgroundColor:
                   CATEGORY_COLORS[index % CATEGORY_COLORS.length],
@@ -53,17 +62,31 @@ export default function Category() {
             {item.image_link ? (
               <Image
                 source={{ uri: item.image_link }}
-                style={styles.categoryImage}
+                style={[
+                  styles.categoryImage,
+                  isCompactDisplay && styles.categoryImageCompact,
+                ]}
                 contentFit="cover"
               />
             ) : (
-              <Text style={styles.categoryEmoji}>📷</Text>
+              <Text
+                style={[
+                  styles.categoryEmoji,
+                  isCompactDisplay && styles.categoryEmojiCompact,
+                ]}
+              >
+                📷
+              </Text>
             )}
           </View>
           <Text
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={styles.categoryLabel}
+            style={[
+              styles.categoryLabel,
+              isCompactDisplay && styles.categoryLabelCompact,
+            ]}
+            maxFontSizeMultiplier={1.1}
           >
             {item.name}
           </Text>
@@ -90,6 +113,9 @@ const styles = StyleSheet.create({
     width: 68,
     alignItems: "center",
   },
+  categoryItemCompact: {
+    width: 62,
+  },
   categoryIconCircle: {
     width: 62,
     height: 62,
@@ -97,13 +123,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  categoryIconCircleCompact: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
   categoryEmoji: {
     fontSize: 28,
+  },
+  categoryEmojiCompact: {
+    fontSize: 24,
   },
   categoryImage: {
     width: 62,
     height: 62,
     borderRadius: 31,
+  },
+  categoryImageCompact: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   categoryLabel: {
     marginTop: 9,
@@ -112,5 +151,9 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.medium,
     width: 80,
     textAlign: "center",
+  },
+  categoryLabelCompact: {
+    width: 66,
+    fontSize: 13,
   },
 });
