@@ -1,6 +1,6 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import React from "react";
 import {
   StyleSheet,
@@ -50,8 +50,8 @@ export default function SearchArea() {
             isCompactDisplay && styles.filterButtonCompact,
           ]}
         >
-          <MaterialCommunityIcons
-            name="tune-variant"
+          <FontAwesome5
+            name="search"
             size={isCompactDisplay ? 18 : 20}
             color="#FFFFFF"
           />

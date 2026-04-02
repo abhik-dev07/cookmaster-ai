@@ -28,19 +28,19 @@ function TabIcon({ focused, color, icon, family = "ionicons" }: TabIconProps) {
             icon as React.ComponentProps<typeof MaterialCommunityIcons>["name"]
           }
           size={TAB_ICON_SIZE}
-          color={focused ? "#2D2D2D" : "#8966FA"}
+          color={focused ? "#2D2D2D" : "#FFFFFF"}
         />
       ) : family === "octicons" ? (
         <Octicons
           name={icon as React.ComponentProps<typeof Octicons>["name"]}
           size={TAB_ICON_SIZE}
-          color={focused ? "#2D2D2D" : "#8966FA"}
+          color={focused ? "#2D2D2D" : "#FFFFFF"}
         />
       ) : (
         <Ionicons
           name={icon as React.ComponentProps<typeof Ionicons>["name"]}
           size={TAB_ICON_SIZE}
-          color={focused ? "#2D2D2D" : "#8966FA"}
+          color={focused ? "#2D2D2D" : "#FFFFFF"}
         />
       )}
     </View>
@@ -72,7 +72,7 @@ export default function TabsLayout() {
             >
               <BlurView
                 intensity={isIOS ? 20 : 20}
-                tint="light"
+                tint="systemThickMaterialDark"
                 experimentalBlurMethod={isIOS ? undefined : "dimezisBlurView"}
                 style={[
                   StyleSheet.absoluteFill,
@@ -181,8 +181,8 @@ const styles = StyleSheet.create({
     marginLeft: 31,
     paddingHorizontal: 5,
     backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#D0C4FF",
+    borderTopWidth: 0,
+    borderTopColor: "transparent",
     elevation: 0,
     shadowColor: "transparent",
     shadowOpacity: 0,
