@@ -26,6 +26,7 @@ export default function Loader() {
         source={require("../assets/images/onboarding/loader.json")}
         autoPlay
         loop
+        renderMode="AUTOMATIC"
         style={styles.animation}
       />
     </View>
