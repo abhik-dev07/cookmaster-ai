@@ -1,0 +1,131 @@
+import { FONT_FAMILY } from "@/constants/fonts";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+const RECENT_RECIPES = [
+  {
+    title: "Pizza Cooking",
+    calories: "975 Kcal",
+    duration: "20 min",
+    ingredients: "5 Ingredients",
+    cardColor: "#ffe9cc",
+  },
+  {
+    title: "Pasta Primavera",
+    calories: "820 Kcal",
+    duration: "18 min",
+    ingredients: "7 Ingredients",
+    cardColor: "#FFD9C4",
+  },
+  {
+    title: "Veggie Omelette",
+    calories: "540 Kcal",
+    duration: "12 min",
+    ingredients: "6 Ingredients",
+    cardColor: "#FFF7BA",
+  },
+] as const;
+
+export default function History() {
+  return (
+    <View>
+      <View style={styles.historyHeading}>
+        <Text style={styles.historyTitle}>History</Text>
+        <TouchableOpacity activeOpacity={0.8}>
+          <Text style={styles.seeAllText}>See all</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={{ gap: 15 }}>
+        {RECENT_RECIPES.map((recipe) => (
+          <View
+            key={recipe.title}
+            style={[styles.historyCard, { backgroundColor: recipe.cardColor }]}
+          >
+            <View style={styles.historyIconWrap}>
+              <MaterialCommunityIcons name="pizza" size={16} color="#6B3D14" />
+            </View>
+            <View style={styles.historyBody}>
+              <Text style={styles.historyCardTitle}>{recipe.title}</Text>
+              <View style={styles.metaRow}>
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaText}>🔥 {recipe.calories}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={12} color="#000000" />
+                  <Text style={styles.metaText}>{recipe.duration}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Ionicons name="apps" size={12} color="#000000" />
+                  <Text style={styles.metaText}>{recipe.ingredients}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  historyHeading: {
+    marginTop: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  historyTitle: {
+    color: "#2B2B2B",
+    fontFamily: FONT_FAMILY.semibold,
+    fontSize: 24,
+  },
+  seeAllText: {
+    color: "#8C8C8C",
+    fontFamily: FONT_FAMILY.medium,
+    fontSize: 15,
+  },
+  historyCard: {
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    height: 100,
+    gap: 10,
+  },
+  historyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 15,
+    backgroundColor: "rgba(255,255,255,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  historyBody: {
+    flex: 1,
+    gap: 5,
+  },
+  historyCardTitle: {
+    color: "#000000",
+    fontFamily: FONT_FAMILY.medium,
+    fontSize: 20,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    color: "#000000",
+    fontFamily: FONT_FAMILY.medium,
+    fontSize: 12,
+  },
+});
