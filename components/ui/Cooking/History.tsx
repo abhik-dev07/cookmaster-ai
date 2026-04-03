@@ -1,7 +1,10 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+const PROP_IMAGE = require("../../../assets/images/common/prop.png");
 
 const RECENT_RECIPES = [
   {
@@ -9,14 +12,16 @@ const RECENT_RECIPES = [
     calories: "975 Kcal",
     duration: "20 min",
     ingredients: "5 Ingredients",
-    cardColor: "#ffe9cc",
+    cardColor: "#FFE9CC",
+    propTint: "#FFD097",
   },
   {
     title: "Pasta Primavera",
     calories: "820 Kcal",
     duration: "18 min",
     ingredients: "7 Ingredients",
-    cardColor: "#FFD9C4",
+    cardColor: "#FFD9C3",
+    propTint: "#FFBA96",
   },
   {
     title: "Veggie Omelette",
@@ -24,6 +29,7 @@ const RECENT_RECIPES = [
     duration: "12 min",
     ingredients: "6 Ingredients",
     cardColor: "#FFF7BA",
+    propTint: "#FDEE5F",
   },
 ] as const;
 
@@ -42,6 +48,12 @@ export default function History() {
             key={recipe.title}
             style={[styles.historyCard, { backgroundColor: recipe.cardColor }]}
           >
+            <Image
+              source={PROP_IMAGE}
+              style={[styles.propBackdrop, { tintColor: recipe.propTint }]}
+              contentFit="contain"
+            />
+
             <View style={styles.historyIconWrap}>
               <MaterialCommunityIcons name="pizza" size={16} color="#6B3D14" />
             </View>
@@ -94,18 +106,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 100,
     gap: 10,
+    overflow: "hidden",
+  },
+  propBackdrop: {
+    position: "absolute",
+    bottom: 1,
+    right: -60,
+    width: 160,
+    height: 160,
+    zIndex: 1,
   },
   historyIconWrap: {
-    width: 80,
-    height: 80,
+    width: 65,
+    height: 65,
     borderRadius: 15,
     backgroundColor: "rgba(255,255,255,0.45)",
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 2,
   },
   historyBody: {
     flex: 1,
     gap: 5,
+    zIndex: 2,
   },
   historyCardTitle: {
     color: "#000000",
@@ -126,6 +149,6 @@ const styles = StyleSheet.create({
   metaText: {
     color: "#000000",
     fontFamily: FONT_FAMILY.medium,
-    fontSize: 12,
+    fontSize: 13,
   },
 });

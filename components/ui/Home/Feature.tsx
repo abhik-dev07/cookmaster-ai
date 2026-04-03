@@ -6,14 +6,27 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+import PROP_IMAGE from "../../../assets/images/common/prop.png";
+
 const RECENT_GENERATED_RECIPES = [
   {
     title: "Mediterranean Grain Bowl",
     duration: "18 minutes",
-    color: "#D4C1FF",
+    color: "#D0C4FF",
+    propTint: "#C3B2FF",
   },
-  { title: "Garlic Herb Pasta Toss", duration: "24 minutes", color: "#D0F593" },
-  { title: "Creamy Pumpkin Soup", duration: "30 minutes", color: "#FFD4A3" },
+  {
+    title: "Garlic Herb Pasta Toss",
+    duration: "24 minutes",
+    color: "#D6FFD3",
+    propTint: "#BDFFB9",
+  },
+  {
+    title: "Creamy Pumpkin Soup",
+    duration: "30 minutes",
+    color: "#E8FFB7",
+    propTint: "#DBFF93",
+  },
 ] as const;
 
 export default function Feature() {
@@ -41,6 +54,16 @@ export default function Feature() {
             },
           ]}
         >
+          <Image
+            source={PROP_IMAGE}
+            style={[
+              styles.propBackdrop,
+              useCompactCard && styles.propBackdropCompact,
+              { tintColor: recipe.propTint },
+            ]}
+            contentFit="contain"
+          />
+
           <TouchableOpacity activeOpacity={0.85} style={styles.favoriteButton}>
             <Ionicons name="heart" size={18} color="#13131E" />
           </TouchableOpacity>
@@ -79,7 +102,7 @@ export default function Feature() {
             ]}
           >
             <Image
-              source={require("../../../assets/images/onboarding/onboarding2.png")}
+              source={require("../../../assets/images/common/food.jpg")}
               style={styles.recipeImage}
               contentFit="cover"
             />
@@ -127,10 +150,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.58)",
+    zIndex: 4,
+  },
+  propBackdrop: {
+    position: "absolute",
+    top: 38,
+    right: -8,
+    width: 320,
+    height: 320,
+    zIndex: 1,
+  },
+  propBackdropCompact: {
+    top: 44,
+    right: -2,
+    width: 210,
+    height: 210,
   },
   cardTextWrap: {
     maxWidth: "56%",
-    zIndex: 2,
+    zIndex: 3,
     flexShrink: 1,
     paddingBottom: 76,
   },
@@ -139,7 +177,7 @@ const styles = StyleSheet.create({
     fontSize: 49,
     lineHeight: 54,
     letterSpacing: -0.6,
-    fontFamily: FONT_FAMILY.bold,
+    fontFamily: FONT_FAMILY.medium,
   },
   cardTitleCompact: {
     fontSize: 40,
@@ -161,27 +199,27 @@ const styles = StyleSheet.create({
   },
   recipeImageWrap: {
     position: "absolute",
-    right: -35,
-    top: 140,
-    width: 246,
-    height: 200,
+    right: -44,
+    top: 134,
+    width: 262,
+    height: 210,
     borderRadius: 30,
     overflow: "hidden",
     borderWidth: 3,
     borderColor: "rgba(255,255,255,0.66)",
     backgroundColor: "#FFFFFF",
-    zIndex: 2,
+    zIndex: 3,
   },
   recipeImageWrapCompact: {
-    right: -20,
-    top: 112,
-    width: 212,
-    height: 212,
+    right: -28,
+    top: 110,
+    width: 224,
+    height: 214,
     borderRadius: 30,
   },
   recipeImage: {
-    width: "100%",
-    height: "100%",
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 30,
   },
   seeRecipeButton: {
     position: "absolute",
@@ -194,6 +232,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 18,
     backgroundColor: "rgba(255,255,255,0.9)",
+    zIndex: 4,
   },
   seeRecipeText: {
     color: "#131329",
