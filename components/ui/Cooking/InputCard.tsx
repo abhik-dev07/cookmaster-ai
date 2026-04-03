@@ -97,7 +97,7 @@ export default function InputCard() {
 const styles = StyleSheet.create({
   pageTitle: {
     color: "#1D1D1D",
-    fontFamily: FONT_FAMILY.semibold,
+    fontFamily: FONT_FAMILY.medium,
     fontSize: 30,
     letterSpacing: 0.2,
     marginTop: 50,

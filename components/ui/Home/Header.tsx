@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F4F5FA",
+    backgroundColor: "#FFFFFF",
   },
   notificationDot: {
     position: "absolute",

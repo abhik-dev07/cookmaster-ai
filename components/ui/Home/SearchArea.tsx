@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F2F3F8",
+    backgroundColor: "#FFFFFF",
   },
   searchInputWrapCompact: {
     height: 52,

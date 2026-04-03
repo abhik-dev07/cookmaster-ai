@@ -33,7 +33,7 @@ export default function Feature() {
   const { width, useCompactCard } = useResponsiveLayout();
 
   const featuredCardWidth = useMemo(() => {
-    const horizontalPadding = 15;
+    const horizontalPadding = 16;
     const safeInnerWidth = Math.max(width - horizontalPadding * 2, 300);
     return Math.min(safeInnerWidth, 420);
   }, [width]);
@@ -127,13 +127,13 @@ export default function Feature() {
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
     paddingTop: 2,
   },
   featuredCard: {
     marginTop: 10,
     borderRadius: 30,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 24,
     overflow: "hidden",

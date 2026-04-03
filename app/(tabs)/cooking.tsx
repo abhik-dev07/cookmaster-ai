@@ -30,14 +30,14 @@ export default function CookingScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
+    backgroundColor: "#F5F7FB",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
+    backgroundColor: "#F5F7FB",
   },
   content: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 130,
     gap: 27,
