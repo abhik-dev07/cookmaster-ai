@@ -1,5 +1,5 @@
 import { FONT_FAMILY } from "@/constants/fonts";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -55,7 +55,11 @@ export default function History() {
             />
 
             <View style={styles.historyIconWrap}>
-              <MaterialCommunityIcons name="pizza" size={16} color="#6B3D14" />
+              <Image
+                source={require("../../../assets/images/common/food.jpg")}
+                contentFit="cover"
+                style={styles.historyImage}
+              />
             </View>
             <View style={styles.historyBody}>
               <Text style={styles.historyCardTitle}>{recipe.title}</Text>
@@ -94,7 +98,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   seeAllText: {
-    color: "#8C8C8C",
+    color: "#858484",
     fontFamily: FONT_FAMILY.medium,
     fontSize: 15,
   },
@@ -124,6 +128,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2,
+  },
+  historyImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 15,
   },
   historyBody: {
     flex: 1,

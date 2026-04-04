@@ -17,8 +17,8 @@ const FILTER_CHIPS = [
   "Breakfast",
   "Lunch",
   "Dinner",
-  "Snacks",
-  "Drinks",
+  "Snack",
+  "Drink",
 ] as const;
 
 const TOP_PICKS = [
