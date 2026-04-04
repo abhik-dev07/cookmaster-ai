@@ -1,5 +1,5 @@
 import { FONT_FAMILY } from "@/constants/fonts";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import {
@@ -112,6 +112,16 @@ export default function FilterRecipeCard() {
                 style={styles.pickImage}
                 contentFit="cover"
               />
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.pickHeartButton}
+              >
+                <MaterialCommunityIcons
+                  name="heart"
+                  size={18}
+                  color="#1A1C2A"
+                />
+              </TouchableOpacity>
             </View>
 
             <Image
@@ -136,7 +146,10 @@ export default function FilterRecipeCard() {
                 <Ionicons name="time-outline" size={14} color="#22222F" />{" "}
                 {item.time}
               </Text>
-              <Text style={styles.pickServe}>🔥 {item.kcal}</Text>
+              <Text style={styles.pickTime}>
+                <Ionicons name="flame-outline" size={14} color="#22222F" />{" "}
+                {item.kcal}
+              </Text>
             </View>
           </View>
         ))}
@@ -216,6 +229,18 @@ const styles = StyleSheet.create({
   pickImage: {
     width: "100%",
     height: "100%",
+  },
+  pickHeartButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    zIndex: 4,
   },
   pickProp: {
     position: "absolute",

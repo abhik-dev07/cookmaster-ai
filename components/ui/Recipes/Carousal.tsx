@@ -1,5 +1,5 @@
 import { FONT_FAMILY } from "@/constants/fonts";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
@@ -98,11 +98,7 @@ export default function Carousal() {
                   <Text style={styles.metaText}>{item.time}</Text>
                 </View>
                 <View style={styles.metaPill}>
-                  <MaterialCommunityIcons
-                    name="fire"
-                    size={15}
-                    color="#22222F"
-                  />
+                  <Ionicons name="flame-outline" size={14} color="#1C1E2D" />
                   <Text style={styles.metaText}>{item.kcal}</Text>
                 </View>
               </View>
