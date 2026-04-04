@@ -96,10 +96,11 @@ export default function InputCard() {
 
 const styles = StyleSheet.create({
   pageTitle: {
-    color: "#1D1D1D",
+    color: "#15161F",
+    fontSize: 36,
+    lineHeight: 40,
+    letterSpacing: -0.7,
     fontFamily: FONT_FAMILY.medium,
-    fontSize: 30,
-    letterSpacing: 0.2,
     marginTop: 50,
     marginBottom: 30,
   },

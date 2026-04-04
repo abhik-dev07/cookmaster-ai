@@ -34,7 +34,7 @@ export default function SearchArea() {
 const styles = StyleSheet.create({
   title: {
     marginTop: 50,
-    color: "#131626",
+    color: "#15161F",
     fontSize: 36,
     lineHeight: 40,
     letterSpacing: -0.7,

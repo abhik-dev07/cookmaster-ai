@@ -1,4 +1,4 @@
-import Carousal from "@/components/ui/Recipes/Carousal";
+import CarousalRecipe from "@/components/ui/Recipes/CarousalRecipe";
 import FilterRecipeCard from "@/components/ui/Recipes/FilterRecipeCard";
 import SearchArea from "@/components/ui/Recipes/SearchArea";
 import React from "react";
@@ -15,7 +15,7 @@ export default function RecipesScreen() {
         <View style={styles.paddedSection}>
           <SearchArea />
         </View>
-        <Carousal />
+        <CarousalRecipe />
         <View style={styles.paddedSection}>
           <FilterRecipeCard />
         </View>

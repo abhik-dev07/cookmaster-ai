@@ -45,7 +45,7 @@ type RecipeItem = (typeof RANDOM_RECIPES)[number];
 const HORIZONTAL_GUTTER = 16;
 const CAROUSEL_HEIGHT = 360;
 
-export default function Carousal() {
+export default function CarousalRecipe() {
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = screenWidth;
 
