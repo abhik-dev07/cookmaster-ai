@@ -1,16 +1,19 @@
-import { useAuth } from "@clerk/expo";
-import { Redirect, Stack } from "expo-router";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import Onboarding from "./onboarding";
+import SignIn from "./sign-in";
+import SignUp from "./sign-up";
+
+const NativeStack = createNativeStackNavigator();
 
 export default function AuthRoutesLayout() {
-  const { isSignedIn, isLoaded } = useAuth();
-
-  if (!isLoaded) {
-    return null;
-  }
-
-  if (isSignedIn) {
-    return <Redirect href={"/(tabs)/home"} />;
-  }
-
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <NativeStack.Navigator
+      initialRouteName="onboarding"
+      screenOptions={{ headerShown: false }}
+    >
+      <NativeStack.Screen name="onboarding" component={Onboarding} />
+      <NativeStack.Screen name="sign-in" component={SignIn} />
+      <NativeStack.Screen name="sign-up" component={SignUp} />
+    </NativeStack.Navigator>
+  );
 }

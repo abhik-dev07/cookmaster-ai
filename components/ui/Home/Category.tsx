@@ -1,14 +1,19 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { api } from "@/convex/_generated/api";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "convex/react";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import React from "react";
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -23,9 +28,18 @@ const CATEGORY_COLORS = [
   "#FFD4A3",
 ];
 
+type RootStackParamList = {
+  categoryRecipe: {
+    categoryId: string;
+    categoryName: string;
+  };
+};
+
 export default function Category() {
   const categories = useQuery(api.categories.listCategories);
   const { isCompactDisplay } = useResponsiveLayout();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   if (categories === undefined) {
     return (
@@ -42,8 +56,19 @@ export default function Category() {
       contentContainerStyle={styles.categoryList}
     >
       {categories.map((item, index) => (
-        <View
+        <TouchableOpacity
           key={item._id}
+          activeOpacity={0.5}
+          onPress={() => {
+            if (Platform.OS !== "web") {
+              void Haptics.selectionAsync();
+            }
+
+            navigation.navigate("categoryRecipe", {
+              categoryId: String(item._id),
+              categoryName: item.name,
+            });
+          }}
           style={[
             styles.categoryItem,
             isCompactDisplay && styles.categoryItemCompact,
@@ -90,7 +115,7 @@ export default function Category() {
           >
             {item.name}
           </Text>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );

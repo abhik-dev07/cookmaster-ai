@@ -1,7 +1,8 @@
 import { useAuth, useSignUp } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Image,
@@ -23,10 +24,17 @@ import {
   showSuccessToast,
 } from "../../utils/toast";
 
+type AuthStackParamList = {
+  onboarding: undefined;
+  "sign-in": undefined;
+  "sign-up": undefined;
+};
+
 function SignUp() {
   const { signUp } = useSignUp();
   const { signOut } = useAuth();
-  const router = useRouter();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AuthStackParamList, "sign-up">>();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -237,7 +245,7 @@ function SignUp() {
             console.error("[sign-up] signOut after finalize failed", error);
           })
           .finally(() => {
-            router.replace("/sign-in");
+            navigation.replace("sign-in");
           });
       },
     });
@@ -484,7 +492,10 @@ function SignUp() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable style={styles.backChip} onPress={() => router.back()}>
+            <Pressable
+              style={styles.backChip}
+              onPress={() => navigation.goBack()}
+            >
               <Ionicons name="arrow-back" size={18} color="#232433" />
             </Pressable>
             <Text style={styles.headerHint}>Create Account</Text>
@@ -620,7 +631,7 @@ function SignUp() {
               <Text style={styles.loginPromptText}>
                 Already have an account ?{" "}
               </Text>
-              <Pressable onPress={() => router.back()}>
+              <Pressable onPress={() => navigation.goBack()}>
                 <Text style={styles.loginPromptLink}>Log in</Text>
               </Pressable>
             </View>

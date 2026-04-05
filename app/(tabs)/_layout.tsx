@@ -1,13 +1,26 @@
 import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
-import { Tabs } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { Platform, StyleSheet, View } from "react-native";
+import CookingScreen from "./cooking";
+import HomeScreen from "./home";
+import ProfileScreen from "./profile";
+import RecipesScreen from "./recipes";
+import WishlistScreen from "./wishlist";
 
 const TAB_ICON_SIZE = 22;
 const ANDROID_TAB_OVERLAY_BG = "rgba(255,255,255,0.24)";
 const ANDROID_TAB_BORDER = "rgba(255,255,255,0.35)";
 const IOS_TAB_OVERLAY_BG = "rgba(255,255,255,0.30)";
 const IOS_TAB_OVERLAY_BORDER = "rgba(255,255,255,0.35)";
+
+const BottomTab = createBottomTabNavigator();
+
+type TabBarIconProps = {
+  focused: boolean;
+  color: string;
+};
 
 type TabIconProps = {
   focused: boolean;
@@ -49,14 +62,26 @@ function TabIcon({ focused, color, icon, family = "ionicons" }: TabIconProps) {
 
 export default function TabsLayout() {
   return (
-    <Tabs
+    <BottomTab.Navigator
       initialRouteName="home"
+      detachInactiveScreens={false}
+      screenListeners={{
+        tabPress: () => {
+          if (Platform.OS !== "web") {
+            void Haptics.selectionAsync();
+          }
+        },
+      }}
       screenOptions={{
         headerShown: false,
+        animation: "shift",
+        lazy: false,
+        sceneStyle: styles.scene,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: "#d4d1d1ff",
+        tabBarActiveTintColor: "#2D2D2D",
         tabBarInactiveTintColor: "#FFFFFF",
         tabBarItemStyle: styles.item,
+        tabBarLabelStyle: styles.label,
         tabBarStyle: styles.tabBar,
         tabBarBackground: () => {
           const isIOS = Platform.OS === "ios";
@@ -71,7 +96,7 @@ export default function TabsLayout() {
               ]}
             >
               <BlurView
-                intensity={isIOS ? 20 : 20}
+                intensity={20}
                 tint="systemThickMaterialDark"
                 experimentalBlurMethod={isIOS ? undefined : "dimezisBlurView"}
                 style={[
@@ -98,10 +123,11 @@ export default function TabsLayout() {
         },
       }}
     >
-      <Tabs.Screen
+      <BottomTab.Screen
         name="home"
+        component={HomeScreen}
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
             <TabIcon
               focused={focused}
               color={color}
@@ -111,10 +137,11 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <BottomTab.Screen
         name="recipes"
+        component={RecipesScreen}
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
             <TabIcon
               focused={focused}
               color={color}
@@ -124,10 +151,11 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <BottomTab.Screen
         name="cooking"
+        component={CookingScreen}
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
             <TabIcon
               focused={focused}
               color={color}
@@ -137,10 +165,11 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <BottomTab.Screen
         name="wishlist"
+        component={WishlistScreen}
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
             <TabIcon
               focused={focused}
               color={color}
@@ -150,10 +179,11 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <BottomTab.Screen
         name="profile"
+        component={ProfileScreen}
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
             <TabIcon
               focused={focused}
               color={color}
@@ -163,11 +193,14 @@ export default function TabsLayout() {
           ),
         }}
       />
-    </Tabs>
+    </BottomTab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
+  scene: {
+    backgroundColor: "#F5F7FB",
+  },
   tabBar: {
     position: "absolute",
     width: "85%",
@@ -196,6 +229,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: 60,
+  },
+  label: {
+    fontSize: 12,
+    fontFamily: "System",
   },
   iconWrap: {
     width: 48,

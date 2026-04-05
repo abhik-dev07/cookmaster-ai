@@ -1,7 +1,7 @@
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
 import {
   Image,
@@ -28,8 +28,15 @@ const CTA_THUMB_SIZE = 44;
 const SLIDE_COMPLETE_THRESHOLD = 0.9;
 const CTA_IMAGE_SAFE_SPACE = 120;
 
+type AuthStackParamList = {
+  onboarding: undefined;
+  "sign-in": undefined;
+  "sign-up": undefined;
+};
+
 export default function Onboarding() {
-  const router = useRouter();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const ctaWidth = useSharedValue(0);
   const thumbX = useSharedValue(0);
   const thumbStartX = useSharedValue(0);
@@ -62,7 +69,7 @@ export default function Onboarding() {
   };
 
   const navigateToSignIn = () => {
-    router.push("/(auth)/sign-in");
+    navigation.navigate("sign-in");
   };
 
   const slideGesture = Gesture.Pan()

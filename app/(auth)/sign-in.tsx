@@ -1,6 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import {
+  useNavigation,
+  type CompositeNavigationProp,
+} from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
-import { Href, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useContext, useState } from "react";
 import {
@@ -27,11 +31,29 @@ import {
   showSuccessToast,
 } from "../../utils/toast";
 
+type RootStackParamList = {
+  index: undefined;
+  loader: undefined;
+  "(auth)": undefined;
+  "(tabs)": undefined;
+};
+
+type AuthStackParamList = {
+  onboarding: undefined;
+  "sign-in": undefined;
+  "sign-up": undefined;
+};
+
+type SignInNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<AuthStackParamList, "sign-in">,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
 export default function SignIn() {
   const { signIn } = useSignIn();
   const { setUser } = useContext(UserContext);
   const upsertConvexUser = useMutation(api.users.upsertFromAuth);
-  const router = useRouter();
+  const navigation = useNavigation<SignInNavigationProp>();
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -39,7 +61,7 @@ export default function SignIn() {
 
   const finalizeSignedInSession = async () => {
     await signIn.finalize({
-      navigate: async ({ session, decorateUrl }) => {
+      navigate: async ({ session }) => {
         if (session?.currentTask) {
           console.log(session.currentTask);
           showErrorToast(
@@ -92,18 +114,8 @@ export default function SignIn() {
 
         setUser(signedInUser);
 
-        const homeRoute: Href = "/home";
-        const url = decorateUrl(homeRoute);
-        const isWebHttpUrl =
-          typeof window !== "undefined" && url.startsWith("http");
-
-        if (isWebHttpUrl) {
-          showSuccessToast("Welcome back", "You have signed in successfully.");
-          window.location.href = url;
-        } else {
-          showSuccessToast("Welcome back", "You have signed in successfully.");
-          router.replace(homeRoute);
-        }
+        showSuccessToast("Welcome back", "You have signed in successfully.");
+        navigation.getParent()?.navigate("(tabs)");
       },
     });
   };
@@ -198,7 +210,10 @@ export default function SignIn() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable style={styles.backChip} onPress={() => router.back()}>
+            <Pressable
+              style={styles.backChip}
+              onPress={() => navigation.goBack()}
+            >
               <Ionicons name="arrow-back" size={18} color="#232433" />
             </Pressable>
             <Text style={styles.headerHint}>Welcome Back</Text>
@@ -279,7 +294,7 @@ export default function SignIn() {
               <Text style={styles.signupPromptText}>
                 Don&apos;t have account ?{" "}
               </Text>
-              <Pressable onPress={() => router.push("/(auth)/sign-up")}>
+              <Pressable onPress={() => navigation.navigate("sign-up")}>
                 <Text style={styles.signupPromptLink}>Create an account</Text>
               </Pressable>
             </View>

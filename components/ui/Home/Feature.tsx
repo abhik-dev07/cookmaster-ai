@@ -1,6 +1,8 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useMemo } from "react";
@@ -10,26 +12,47 @@ import PROP_IMAGE from "../../../assets/images/common/prop.png";
 
 const RECENT_GENERATED_RECIPES = [
   {
+    id: "mediterranean-grain-bowl",
     title: "Mediterranean Grain Bowl",
+    description:
+      "A colorful grain bowl with fresh veggies, herbs, and a zesty dressing.",
     duration: "18 minutes",
     color: "#D0C4FF",
     propTint: "#C3B2FF",
   },
   {
+    id: "garlic-herb-pasta-toss",
     title: "Garlic Herb Pasta Toss",
+    description:
+      "Quick pasta tossed with garlic, olive oil, herbs, and parmesan.",
     duration: "24 minutes",
     color: "#D6FFD3",
     propTint: "#BDFFB9",
   },
   {
+    id: "creamy-pumpkin-soup",
     title: "Creamy Pumpkin Soup",
+    description:
+      "A velvety pumpkin soup finished with cream, pepper, and warm spices.",
     duration: "30 minutes",
     color: "#E8FFB7",
     propTint: "#DBFF93",
   },
 ] as const;
 
+type RootStackParamList = {
+  recipeDetails: {
+    recipeId: string;
+    title: string;
+    description: string;
+  };
+};
+
 export default function Feature() {
+  const navigation =
+    useNavigation<
+      NativeStackNavigationProp<RootStackParamList, "recipeDetails">
+    >();
   const { width, useCompactCard } = useResponsiveLayout();
 
   const featuredCardWidth = useMemo(() => {
@@ -108,7 +131,17 @@ export default function Feature() {
             />
           </View>
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.seeRecipeButton}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.seeRecipeButton}
+            onPress={() => {
+              navigation.navigate("recipeDetails", {
+                recipeId: recipe.id,
+                title: recipe.title,
+                description: recipe.description,
+              });
+            }}
+          >
             <Text
               style={[
                 styles.seeRecipeText,

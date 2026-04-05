@@ -1,8 +1,8 @@
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { useFonts } from "expo-font";
-import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { StatusBar, StyleProp, Text, TextInput, TextStyle } from "react-native";
@@ -12,6 +12,12 @@ import Toast from "react-native-toast-message";
 import { appToastConfig } from "../components/AppToast";
 import { FONT_FAMILY } from "../constants/fonts";
 import { UserContextProvider } from "../context/UserContext";
+import AuthRoutesLayout from "./(auth)/_layout";
+import TabsLayout from "./(tabs)/_layout";
+import CategoryRecipeScreen from "./category-recipe/categoryRecipe";
+import Index from "./index";
+import Loader from "./loader";
+import RecipeDetailsScreen from "./recipe-details/recipeDetails";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -28,7 +34,8 @@ if (!convexUrl) {
 }
 
 const convex = new ConvexReactClient(convexUrl);
-const APP_BACKGROUND_COLOR = "#FFFFFF";
+const APP_BACKGROUND_COLOR = "#F5F7FB";
+const NativeStack = createNativeStackNavigator();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -88,7 +95,40 @@ export default function RootLayout() {
             style={{ flex: 1, backgroundColor: APP_BACKGROUND_COLOR }}
           >
             <KeyboardProvider>
-              <Slot />
+              <NativeStack.Navigator
+                initialRouteName="index"
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: APP_BACKGROUND_COLOR },
+                }}
+              >
+                <NativeStack.Screen name="index" component={Index} />
+                <NativeStack.Screen name="loader" component={Loader} />
+                <NativeStack.Screen
+                  name="(auth)"
+                  component={AuthRoutesLayout}
+                />
+                <NativeStack.Screen name="(tabs)" component={TabsLayout} />
+                <NativeStack.Screen
+                  name="categoryRecipe"
+                  component={CategoryRecipeScreen}
+                  options={{
+                    animation: "slide_from_bottom",
+                    gestureEnabled: false,
+                    headerTransparent: true,
+                  }}
+                />
+                <NativeStack.Screen
+                  name="recipeDetails"
+                  component={RecipeDetailsScreen}
+                  options={{
+                    animation: "fade_from_bottom",
+                    gestureEnabled: true,
+                    headerTransparent: true,
+                    presentation: "card",
+                  }}
+                />
+              </NativeStack.Navigator>
             </KeyboardProvider>
             <Toast config={appToastConfig} />
             <StatusBar
