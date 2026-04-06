@@ -1,6 +1,6 @@
+import RecipeCard from "@/components/RecipeCard";
 import FilterCategory from "@/components/ui/Catagory/FilterCategory";
 import Header from "@/components/ui/Catagory/Header";
-import RecipeCard from "@/components/ui/Catagory/RecipeCard";
 import React from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
@@ -32,10 +32,7 @@ export default function CategoryRecipe() {
           { useNativeDriver: true },
         )}
       >
-        <RecipeCard
-          selectedFilter={selectedFilter}
-          sectionTitleOpacity={sectionTitleOpacity}
-        />
+        <RecipeCard mode="category" selectedFilter={selectedFilter} />
       </Animated.ScrollView>
     </View>
   );
