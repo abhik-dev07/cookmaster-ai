@@ -4,12 +4,13 @@ import SignIn from "./sign-in";
 import SignUp from "./sign-up";
 
 const NativeStack = createNativeStackNavigator();
+const AUTH_STACK_SCREEN_OPTIONS = { headerShown: false } as const;
 
 export default function AuthRoutesLayout() {
   return (
     <NativeStack.Navigator
       initialRouteName="onboarding"
-      screenOptions={{ headerShown: false }}
+      screenOptions={AUTH_STACK_SCREEN_OPTIONS}
     >
       <NativeStack.Screen name="onboarding" component={Onboarding} />
       <NativeStack.Screen name="sign-in" component={SignIn} />

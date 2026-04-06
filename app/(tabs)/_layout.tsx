@@ -60,137 +60,127 @@ function TabIcon({ focused, color, icon, family = "ionicons" }: TabIconProps) {
   );
 }
 
+function TabBarBackground() {
+  const isIOS = Platform.OS === "ios";
+
+  return (
+    <View
+      style={[
+        StyleSheet.absoluteFill,
+        {
+          borderRadius: 999,
+          overflow: "hidden",
+        },
+      ]}
+    >
+      <BlurView
+        intensity={20}
+        tint="systemThickMaterialDark"
+        experimentalBlurMethod={isIOS ? undefined : "dimezisBlurView"}
+        style={[StyleSheet.absoluteFill, { backgroundColor: "transparent" }]}
+      />
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: isIOS
+              ? IOS_TAB_OVERLAY_BG
+              : ANDROID_TAB_OVERLAY_BG,
+            borderRadius: 999,
+            borderColor: isIOS ? IOS_TAB_OVERLAY_BORDER : ANDROID_TAB_BORDER,
+          },
+        ]}
+      />
+    </View>
+  );
+}
+
+function homeTabBarIcon({ focused, color }: TabBarIconProps) {
+  return (
+    <TabIcon
+      focused={focused}
+      color={color}
+      family="material"
+      icon="chef-hat"
+    />
+  );
+}
+
+function recipesTabBarIcon({ focused, color }: TabBarIconProps) {
+  return (
+    <TabIcon
+      focused={focused}
+      color={color}
+      family="material"
+      icon="book-open-variant"
+    />
+  );
+}
+
+function cookingTabBarIcon({ focused, color }: TabBarIconProps) {
+  return (
+    <TabIcon
+      focused={focused}
+      color={color}
+      family="octicons"
+      icon="sparkle-fill"
+    />
+  );
+}
+
+function wishlistTabBarIcon({ focused, color }: TabBarIconProps) {
+  return (
+    <TabIcon focused={focused} color={color} family="material" icon="heart" />
+  );
+}
+
+function profileTabBarIcon({ focused, color }: TabBarIconProps) {
+  return (
+    <TabIcon focused={focused} color={color} family="ionicons" icon="person" />
+  );
+}
+
 export default function TabsLayout() {
   return (
     <BottomTab.Navigator
       initialRouteName="home"
       detachInactiveScreens={false}
-      screenListeners={{
-        tabPress: () => {
-          if (Platform.OS !== "web") {
-            void Haptics.selectionAsync();
-          }
-        },
-      }}
-      screenOptions={{
-        headerShown: false,
-        animation: "shift",
-        lazy: false,
-        sceneStyle: styles.scene,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: "#2D2D2D",
-        tabBarInactiveTintColor: "#FFFFFF",
-        tabBarItemStyle: styles.item,
-        tabBarLabelStyle: styles.label,
-        tabBarStyle: styles.tabBar,
-        tabBarBackground: () => {
-          const isIOS = Platform.OS === "ios";
-          return (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                {
-                  borderRadius: 999,
-                  overflow: "hidden",
-                },
-              ]}
-            >
-              <BlurView
-                intensity={20}
-                tint="systemThickMaterialDark"
-                experimentalBlurMethod={isIOS ? undefined : "dimezisBlurView"}
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: "transparent" },
-                ]}
-              />
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  {
-                    backgroundColor: isIOS
-                      ? IOS_TAB_OVERLAY_BG
-                      : ANDROID_TAB_OVERLAY_BG,
-                    borderRadius: 999,
-                    borderColor: isIOS
-                      ? IOS_TAB_OVERLAY_BORDER
-                      : ANDROID_TAB_BORDER,
-                  },
-                ]}
-              />
-            </View>
-          );
-        },
-      }}
+      screenListeners={TAB_SCREEN_LISTENERS}
+      screenOptions={TAB_SCREEN_OPTIONS}
     >
       <BottomTab.Screen
         name="home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
-            <TabIcon
-              focused={focused}
-              color={color}
-              family="material"
-              icon="chef-hat"
-            />
-          ),
+          tabBarIcon: homeTabBarIcon,
         }}
       />
       <BottomTab.Screen
         name="recipes"
         component={RecipesScreen}
         options={{
-          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
-            <TabIcon
-              focused={focused}
-              color={color}
-              family="material"
-              icon="book-open-variant"
-            />
-          ),
+          tabBarIcon: recipesTabBarIcon,
         }}
       />
       <BottomTab.Screen
         name="cooking"
         component={CookingScreen}
         options={{
-          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
-            <TabIcon
-              focused={focused}
-              color={color}
-              family="octicons"
-              icon="sparkle-fill"
-            />
-          ),
+          tabBarIcon: cookingTabBarIcon,
         }}
       />
       <BottomTab.Screen
         name="wishlist"
         component={WishlistScreen}
         options={{
-          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
-            <TabIcon
-              focused={focused}
-              color={color}
-              family="material"
-              icon="heart"
-            />
-          ),
+          tabBarIcon: wishlistTabBarIcon,
         }}
       />
       <BottomTab.Screen
         name="profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ focused, color }: TabBarIconProps) => (
-            <TabIcon
-              focused={focused}
-              color={color}
-              family="ionicons"
-              icon="person"
-            />
-          ),
+          tabBarIcon: profileTabBarIcon,
         }}
       />
     </BottomTab.Navigator>
@@ -262,3 +252,25 @@ const styles = StyleSheet.create({
     },
   },
 });
+
+const TAB_SCREEN_OPTIONS = {
+  headerShown: false,
+  animation: "shift",
+  lazy: false,
+  sceneStyle: styles.scene,
+  tabBarShowLabel: false,
+  tabBarActiveTintColor: "#2D2D2D",
+  tabBarInactiveTintColor: "#FFFFFF",
+  tabBarItemStyle: styles.item,
+  tabBarLabelStyle: styles.label,
+  tabBarStyle: styles.tabBar,
+  tabBarBackground: TabBarBackground,
+} as const;
+
+const TAB_SCREEN_LISTENERS = {
+  tabPress: () => {
+    if (Platform.OS !== "web") {
+      void Haptics.selectionAsync();
+    }
+  },
+} as const;

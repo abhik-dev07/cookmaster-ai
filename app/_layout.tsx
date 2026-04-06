@@ -1,5 +1,6 @@
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { useFonts } from "expo-font";
@@ -36,6 +37,10 @@ if (!convexUrl) {
 const convex = new ConvexReactClient(convexUrl);
 const APP_BACKGROUND_COLOR = "#F5F7FB";
 const NativeStack = createNativeStackNavigator();
+const ROOT_STACK_SCREEN_OPTIONS = {
+  headerShown: false,
+  contentStyle: { backgroundColor: APP_BACKGROUND_COLOR },
+} as const;
 
 SplashScreen.preventAutoHideAsync();
 
@@ -94,57 +99,56 @@ export default function RootLayout() {
           <GestureHandlerRootView
             style={{ flex: 1, backgroundColor: APP_BACKGROUND_COLOR }}
           >
-            <KeyboardProvider>
-              <NativeStack.Navigator
-                initialRouteName="loader"
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: APP_BACKGROUND_COLOR },
-                }}
-              >
-                <NativeStack.Screen name="index" component={Index} />
-                <NativeStack.Screen
-                  name="loader"
-                  component={Loader}
-                  options={{
-                    animation: "fade",
-                  }}
-                />
-                <NativeStack.Screen
-                  name="(auth)"
-                  component={AuthRoutesLayout}
-                  options={{
-                    animation: "fade",
-                  }}
-                />
-                <NativeStack.Screen
-                  name="(tabs)"
-                  component={TabsLayout}
-                  options={{
-                    animation: "fade",
-                  }}
-                />
-                <NativeStack.Screen
-                  name="categoryRecipe"
-                  component={CategoryRecipeScreen}
-                  options={{
-                    animation: "slide_from_bottom",
-                    gestureEnabled: false,
-                    headerTransparent: true,
-                  }}
-                />
-                <NativeStack.Screen
-                  name="recipeDetails"
-                  component={RecipeDetailsScreen}
-                  options={{
-                    animation: "fade_from_bottom",
-                    gestureEnabled: true,
-                    headerTransparent: true,
-                    presentation: "card",
-                  }}
-                />
-              </NativeStack.Navigator>
-            </KeyboardProvider>
+            <BottomSheetModalProvider>
+              <KeyboardProvider>
+                <NativeStack.Navigator
+                  initialRouteName="loader"
+                  screenOptions={ROOT_STACK_SCREEN_OPTIONS}
+                >
+                  <NativeStack.Screen name="index" component={Index} />
+                  <NativeStack.Screen
+                    name="loader"
+                    component={Loader}
+                    options={{
+                      animation: "fade",
+                    }}
+                  />
+                  <NativeStack.Screen
+                    name="(auth)"
+                    component={AuthRoutesLayout}
+                    options={{
+                      animation: "fade",
+                    }}
+                  />
+                  <NativeStack.Screen
+                    name="(tabs)"
+                    component={TabsLayout}
+                    options={{
+                      animation: "fade",
+                    }}
+                  />
+                  <NativeStack.Screen
+                    name="categoryRecipe"
+                    component={CategoryRecipeScreen}
+                    options={{
+                      animation: "slide_from_bottom",
+                      gestureEnabled: false,
+                      headerTransparent: true,
+                    }}
+                  />
+                  <NativeStack.Screen
+                    name="recipeDetails"
+                    component={RecipeDetailsScreen}
+                    options={{
+                      animation: "fade_from_bottom",
+                      gestureEnabled: true,
+                      headerTransparent: true,
+                      presentation: "card",
+                    }}
+                  />
+                </NativeStack.Navigator>
+              </KeyboardProvider>
+            </BottomSheetModalProvider>
             <Toast config={appToastConfig} />
             <StatusBar
               backgroundColor={APP_BACKGROUND_COLOR}

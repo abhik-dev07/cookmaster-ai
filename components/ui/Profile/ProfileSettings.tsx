@@ -1,12 +1,67 @@
 import { FONT_FAMILY } from "@/constants/fonts";
+import { UserContext } from "@/context/UserContext";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useUser } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useContext } from "react";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-export default function ProfileSettings() {
+type ProfileSettingsProps = {
+  onOpenProfileActions?: () => void;
+  onOpenPreferences?: () => void;
+  onOpenEditProfile?: () => void;
+};
+
+export default function ProfileSettings({
+  onOpenProfileActions,
+  onOpenPreferences,
+  onOpenEditProfile,
+}: ProfileSettingsProps) {
   const { shouldRemoveTopMargin } = useResponsiveLayout();
+  const { user: storedUser } = useContext(UserContext);
+  const { user: clerkUser } = useUser();
+
+  const displayName =
+    storedUser?.name ??
+    clerkUser?.fullName ??
+    clerkUser?.firstName ??
+    "CookMaster User";
+  const displayEmail =
+    storedUser?.email ?? clerkUser?.primaryEmailAddress?.emailAddress ?? "";
+  const displayAvatarUri =
+    storedUser?.picture ?? clerkUser?.imageUrl ?? undefined;
+
+  const handleOpenProfileActions = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.selectionAsync();
+    }
+
+    onOpenProfileActions?.();
+  };
+
+  const handleOpenPreferences = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.selectionAsync();
+    }
+
+    onOpenPreferences?.();
+  };
+
+  const handleOpenEditProfile = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.selectionAsync();
+    }
+
+    onOpenEditProfile?.();
+  };
 
   return (
     <View>
@@ -17,7 +72,11 @@ export default function ProfileSettings() {
         ]}
       >
         <Text style={styles.title}>Profile</Text>
-        <TouchableOpacity activeOpacity={0.86} style={styles.settingsButton}>
+        <TouchableOpacity
+          activeOpacity={0.86}
+          style={styles.settingsButton}
+          onPress={handleOpenProfileActions}
+        >
           <Ionicons name="settings-sharp" size={22} color="#15161D" />
         </TouchableOpacity>
       </View>
@@ -26,18 +85,26 @@ export default function ProfileSettings() {
         <View style={styles.accountInfo}>
           <View style={styles.avatarWrap}>
             <Image
-              source={require("../../../assets/images/icon.png")}
+              source={
+                displayAvatarUri
+                  ? { uri: displayAvatarUri }
+                  : require("../../../assets/images/icon.png")
+              }
               style={styles.avatar}
               contentFit="cover"
             />
           </View>
           <View style={styles.accountTextWrap}>
-            <Text style={styles.name}>Emily Ava</Text>
-            <Text style={styles.email}>crobinson@yahoo.com</Text>
+            <Text style={styles.name}>{displayName}</Text>
+            <Text style={styles.email}>{displayEmail}</Text>
           </View>
         </View>
 
-        <TouchableOpacity activeOpacity={0.86} style={styles.editButton}>
+        <TouchableOpacity
+          activeOpacity={0.86}
+          style={styles.editButton}
+          onPress={handleOpenEditProfile}
+        >
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
       </View>
@@ -52,13 +119,14 @@ export default function ProfileSettings() {
         <View style={styles.preferenceCopy}>
           <Text style={styles.preferenceTitle}>Preferences</Text>
           <Text style={styles.preferenceSubtitle}>
-            Goals, food preferences and more
+            Food preferences and more
           </Text>
         </View>
 
         <TouchableOpacity
           activeOpacity={0.88}
           style={styles.preferenceArrowWrap}
+          onPress={handleOpenPreferences}
         >
           <Ionicons name="arrow-forward" size={20} color="#181924" />
         </TouchableOpacity>

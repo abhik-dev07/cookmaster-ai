@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
-import { useSignIn } from "@clerk/expo";
+import { useAuth, useSignIn } from "@clerk/expo";
 import { useMutation } from "convex/react";
 import { FONT_FAMILY } from "../../constants/fonts";
 import { User, UserContext } from "../../context/UserContext";
@@ -51,6 +51,7 @@ type SignInNavigationProp = CompositeNavigationProp<
 
 export default function SignIn() {
   const { signIn } = useSignIn();
+  const { isLoaded: isAuthLoaded } = useAuth();
   const { setUser } = useContext(UserContext);
   const upsertConvexUser = useMutation(api.users.upsertFromAuth);
   const navigation = useNavigation<SignInNavigationProp>();
@@ -62,66 +63,92 @@ export default function SignIn() {
   const finalizeSignedInSession = async () => {
     await signIn.finalize({
       navigate: async ({ session }) => {
-        if (session?.currentTask) {
-          console.log(session.currentTask);
-          showErrorToast(
-            "Sign in",
-            "Could not complete sign-in. Please try again.",
+        try {
+          if (session?.currentTask) {
+            console.log(session.currentTask);
+            showErrorToast(
+              "Sign in",
+              "Could not complete sign-in. Please try again.",
+            );
+            return;
+          }
+
+          const authUserId = (session as any)?.user?.id;
+          if (!authUserId) {
+            showErrorToast(
+              "Sign in failed",
+              "Could not read your user session. Please try again.",
+            );
+            return;
+          }
+
+          const authEmail =
+            (session as any)?.user?.primaryEmailAddress?.emailAddress ??
+            emailAddress;
+          const authName =
+            (session as any)?.user?.fullName ??
+            (session as any)?.user?.firstName ??
+            "CookMaster User";
+          const authPicture = (session as any)?.user?.imageUrl;
+
+          const convexUser = await upsertConvexUser({
+            clerkUserId: String(authUserId),
+            email: authEmail,
+            name: authName,
+            picture: authPicture,
+          });
+
+          const signedInUser: User = {
+            id: convexUser._id,
+            email: convexUser.email,
+            name: convexUser.name,
+            picture: convexUser.picture,
+            credits: convexUser.credits,
+            pref: convexUser.pref,
+            created_at: convexUser.created_at,
+            updated_at: convexUser.updated_at,
+          };
+
+          await SecureStore.setItemAsync(
+            "user_session",
+            JSON.stringify({
+              sessionId: session?.id,
+              userId: signedInUser.id,
+              email: signedInUser.email,
+            }),
           );
-          return;
+          await SecureStore.setItemAsync(
+            "user_context",
+            JSON.stringify(signedInUser),
+          );
+
+          setUser(signedInUser);
+          hideToast();
+          showSuccessToast("Welcome back", "You have signed in successfully.");
+          navigation.getParent()?.navigate("(tabs)");
+        } catch (error) {
+          console.error("[sign-in] finalize navigate failed", error);
+          hideToast();
+          showErrorToast(
+            "Sign in failed",
+            "Something went wrong while finishing sign-in.",
+          );
         }
-
-        const authUserId = (session as any)?.user?.id ?? session?.id ?? "";
-        const authEmail =
-          (session as any)?.user?.primaryEmailAddress?.emailAddress ??
-          emailAddress;
-        const authName =
-          (session as any)?.user?.fullName ??
-          (session as any)?.user?.firstName ??
-          "CookMaster User";
-        const authPicture = (session as any)?.user?.imageUrl;
-
-        const convexUser = await upsertConvexUser({
-          clerkUserId: String(authUserId),
-          email: authEmail,
-          name: authName,
-          picture: authPicture,
-        });
-
-        const signedInUser: User = {
-          id: convexUser._id,
-          email: convexUser.email,
-          name: convexUser.name,
-          picture: convexUser.picture,
-          credits: convexUser.credits,
-          pref: convexUser.pref,
-          created_at: convexUser.created_at,
-          updated_at: convexUser.updated_at,
-        };
-
-        await SecureStore.setItemAsync(
-          "user_session",
-          JSON.stringify({
-            sessionId: session?.id,
-            userId: signedInUser.id,
-            email: signedInUser.email,
-          }),
-        );
-        await SecureStore.setItemAsync(
-          "user_context",
-          JSON.stringify(signedInUser),
-        );
-
-        setUser(signedInUser);
-
-        showSuccessToast("Welcome back", "You have signed in successfully.");
-        navigation.getParent()?.navigate("(tabs)");
       },
     });
   };
 
   const handleEmailPasswordSignIn = async () => {
     setLoading(true);
+
+    if (!isAuthLoaded || !signIn) {
+      showErrorToast(
+        "Please wait",
+        "Authentication is still loading. Try again in a moment.",
+      );
+      setLoading(false);
+      return;
+    }
 
     if (!emailAddress.trim() || !password.trim()) {
       showErrorToast("Missing fields", "Please enter email and password.");

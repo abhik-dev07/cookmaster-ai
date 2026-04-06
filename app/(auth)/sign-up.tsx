@@ -32,7 +32,7 @@ type AuthStackParamList = {
 
 function SignUp() {
   const { signUp } = useSignUp();
-  const { signOut } = useAuth();
+  const { signOut, isLoaded: isAuthLoaded } = useAuth();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList, "sign-up">>();
   const [name, setName] = useState("");
@@ -78,6 +78,15 @@ function SignUp() {
   };
 
   const completeMissingFieldsIfRequired = async (): Promise<boolean> => {
+    if (!isAuthLoaded || !signUp) {
+      hideToast();
+      showErrorToast(
+        "Please wait",
+        "Authentication is still loading. Try again in a moment.",
+      );
+      return false;
+    }
+
     if (signUp.status === "complete") {
       return true;
     }
@@ -195,6 +204,14 @@ function SignUp() {
   const completeVerifiedSignUp = async () => {
     hideToast();
 
+    if (!isAuthLoaded || !signUp) {
+      showErrorToast(
+        "Please wait",
+        "Authentication is still loading. Try again in a moment.",
+      );
+      return;
+    }
+
     const readyToFinalize = await completeMissingFieldsIfRequired();
     if (!readyToFinalize) {
       return;
@@ -211,53 +228,70 @@ function SignUp() {
       return;
     }
 
-    const finalizeResult = await signUp.finalize({
-      navigate: async ({ session }) => {
-        if (session?.currentTask) {
-          hideToast();
-          showErrorToast(
-            "Action required",
-            "Please complete the pending account task to continue.",
-          );
-          return;
-        }
+    try {
+      const finalizeResult = await signUp.finalize({
+        navigate: async ({ session }) => {
+          try {
+            if (session?.currentTask) {
+              hideToast();
+              showErrorToast(
+                "Action required",
+                "Please complete the pending account task to continue.",
+              );
+              return;
+            }
 
-        const clerkUserId =
-          (session as any)?.user?.id ?? (signUp as any)?.createdUserId;
+            const clerkUserId =
+              (session as any)?.user?.id ?? (signUp as any)?.createdUserId;
 
-        if (!clerkUserId) {
-          hideToast();
-          showErrorToast(
-            "Sign up failed",
-            "Could not find a Clerk user id after verification.",
-          );
-          return;
-        }
+            if (!clerkUserId) {
+              hideToast();
+              showErrorToast(
+                "Sign up failed",
+                "Could not find a Clerk user id after verification.",
+              );
+              return;
+            }
 
-        hideToast();
-        showSuccessToast(
-          "Account created",
-          "Log in. Make some amazing dishes.",
-        );
+            if (isAuthLoaded) {
+              await signOut().catch((error) => {
+                console.error("[sign-up] signOut after finalize failed", error);
+              });
+            }
 
-        void signOut()
-          .catch((error) => {
-            console.error("[sign-up] signOut after finalize failed", error);
-          })
-          .finally(() => {
+            hideToast();
+            showSuccessToast(
+              "Account created",
+              "Log in. Make some amazing dishes.",
+            );
             navigation.replace("sign-in");
-          });
-      },
-    });
+          } catch (error) {
+            console.error("[sign-up] finalize navigate failed", error);
+            hideToast();
+            showErrorToast(
+              "Sign up failed",
+              "Something went wrong while finishing sign-up.",
+            );
+          }
+        },
+      });
 
-    if (finalizeResult?.error) {
+      if (finalizeResult?.error) {
+        hideToast();
+        const finalizeError = (finalizeResult as any)?.error;
+        const finalizeMessage =
+          finalizeError?.errors?.[0]?.longMessage ??
+          finalizeError?.errors?.[0]?.message ??
+          "Could not finalize sign-up. Please try again.";
+        showErrorToast("Sign up failed", finalizeMessage);
+      }
+    } catch (error) {
+      console.error("[sign-up] finalize failed", error);
       hideToast();
-      const finalizeError = (finalizeResult as any)?.error;
-      const finalizeMessage =
-        finalizeError?.errors?.[0]?.longMessage ??
-        finalizeError?.errors?.[0]?.message ??
-        "Could not finalize sign-up. Please try again.";
-      showErrorToast("Sign up failed", finalizeMessage);
+      showErrorToast(
+        "Sign up failed",
+        "Something went wrong while finishing sign-up.",
+      );
     }
   };
 
@@ -289,6 +323,15 @@ function SignUp() {
 
   const handleCreateAccount = async () => {
     setLoading(true);
+
+    if (!isAuthLoaded || !signUp) {
+      showErrorToast(
+        "Please wait",
+        "Authentication is still loading. Try again in a moment.",
+      );
+      setLoading(false);
+      return;
+    }
 
     if (!name.trim() || !email.trim() || !password.trim()) {
       showErrorToast("Missing fields", "Please fill all fields to continue.");
@@ -386,6 +429,15 @@ function SignUp() {
   const handleVerifyEmailCode = async () => {
     setLoading(true);
 
+    if (!isAuthLoaded || !signUp) {
+      showErrorToast(
+        "Please wait",
+        "Authentication is still loading. Try again in a moment.",
+      );
+      setLoading(false);
+      return;
+    }
+
     if (!verificationCode.trim()) {
       showErrorToast("Missing code", "Please enter the verification code.");
       setLoading(false);
@@ -445,6 +497,16 @@ function SignUp() {
 
   const handleResendVerificationCode = async () => {
     setLoading(true);
+
+    if (!isAuthLoaded || !signUp) {
+      showErrorToast(
+        "Please wait",
+        "Authentication is still loading. Try again in a moment.",
+      );
+      setLoading(false);
+      return;
+    }
+
     showPendingToast("Resending code", "Sending a new verification code...");
 
     try {
