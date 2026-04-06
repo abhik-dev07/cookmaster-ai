@@ -2,10 +2,12 @@ import { useAuth, useSignUp } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import {
   Image,
+  Platform,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -42,6 +44,29 @@ function SignUp() {
   const [awaitingVerification, setAwaitingVerification] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const triggerSelectionHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.selectionAsync();
+    }
+  };
+
+  const triggerSuccessHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
+  const triggerErrorHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  const showHapticErrorToast = (title: string, message: string) => {
+    triggerErrorHaptic();
+    showErrorToast(title, message);
+  };
 
   const splitName = (fullName: string) => {
     const clean = fullName.trim().replace(/\s+/g, " ");
@@ -80,7 +105,7 @@ function SignUp() {
   const completeMissingFieldsIfRequired = async (): Promise<boolean> => {
     if (!isAuthLoaded || !signUp) {
       hideToast();
-      showErrorToast(
+      showHapticErrorToast(
         "Please wait",
         "Authentication is still loading. Try again in a moment.",
       );
@@ -105,7 +130,7 @@ function SignUp() {
 
     if (needsFirstName && !firstName) {
       hideToast();
-      showErrorToast(
+      showHapticErrorToast(
         "Name required",
         "Please enter your full name to finish creating your account.",
       );
@@ -114,7 +139,7 @@ function SignUp() {
 
     if (needsLastName && !lastName) {
       hideToast();
-      showErrorToast(
+      showHapticErrorToast(
         "Last name required",
         "Please include both first and last name to finish sign-up.",
       );
@@ -167,7 +192,7 @@ function SignUp() {
         (error as any)?.errors?.[0]?.longMessage ??
         (error as any)?.errors?.[0]?.message ??
         "Could not save your profile details.";
-      showErrorToast("Sign up failed", updateMessage);
+      showHapticErrorToast("Sign up failed", updateMessage);
       return { ok: false, retry: false };
     };
 
@@ -187,7 +212,7 @@ function SignUp() {
       }
 
       hideToast();
-      showErrorToast(
+      showHapticErrorToast(
         "Username unavailable",
         "Could not generate an available username. Please try again.",
       );
@@ -205,7 +230,7 @@ function SignUp() {
     hideToast();
 
     if (!isAuthLoaded || !signUp) {
-      showErrorToast(
+      showHapticErrorToast(
         "Please wait",
         "Authentication is still loading. Try again in a moment.",
       );
@@ -221,7 +246,7 @@ function SignUp() {
       const remainingFields =
         (signUp.missingFields ?? []).join(", ") || "unknown";
       hideToast();
-      showErrorToast(
+      showHapticErrorToast(
         "Sign up incomplete",
         `Additional required fields are still missing: ${remainingFields}.`,
       );
@@ -234,7 +259,7 @@ function SignUp() {
           try {
             if (session?.currentTask) {
               hideToast();
-              showErrorToast(
+              showHapticErrorToast(
                 "Action required",
                 "Please complete the pending account task to continue.",
               );
@@ -246,7 +271,7 @@ function SignUp() {
 
             if (!clerkUserId) {
               hideToast();
-              showErrorToast(
+              showHapticErrorToast(
                 "Sign up failed",
                 "Could not find a Clerk user id after verification.",
               );
@@ -260,6 +285,7 @@ function SignUp() {
             }
 
             hideToast();
+            triggerSuccessHaptic();
             showSuccessToast(
               "Account created",
               "Log in. Make some amazing dishes.",
@@ -268,7 +294,7 @@ function SignUp() {
           } catch (error) {
             console.error("[sign-up] finalize navigate failed", error);
             hideToast();
-            showErrorToast(
+            showHapticErrorToast(
               "Sign up failed",
               "Something went wrong while finishing sign-up.",
             );
@@ -283,12 +309,12 @@ function SignUp() {
           finalizeError?.errors?.[0]?.longMessage ??
           finalizeError?.errors?.[0]?.message ??
           "Could not finalize sign-up. Please try again.";
-        showErrorToast("Sign up failed", finalizeMessage);
+        showHapticErrorToast("Sign up failed", finalizeMessage);
       }
     } catch (error) {
       console.error("[sign-up] finalize failed", error);
       hideToast();
-      showErrorToast(
+      showHapticErrorToast(
         "Sign up failed",
         "Something went wrong while finishing sign-up.",
       );
@@ -325,7 +351,7 @@ function SignUp() {
     setLoading(true);
 
     if (!isAuthLoaded || !signUp) {
-      showErrorToast(
+      showHapticErrorToast(
         "Please wait",
         "Authentication is still loading. Try again in a moment.",
       );
@@ -334,7 +360,10 @@ function SignUp() {
     }
 
     if (!name.trim() || !email.trim() || !password.trim()) {
-      showErrorToast("Missing fields", "Please fill all fields to continue.");
+      showHapticErrorToast(
+        "Missing fields",
+        "Please fill all fields to continue.",
+      );
       setLoading(false);
       return;
     }
@@ -347,7 +376,7 @@ function SignUp() {
 
       if (!firstName || !lastName) {
         hideToast();
-        showErrorToast(
+        showHapticErrorToast(
           "Full name required",
           "Please enter both first and last name.",
         );
@@ -386,7 +415,7 @@ function SignUp() {
 
       if (!passwordResult || passwordResult.error) {
         console.error(JSON.stringify(passwordResult?.error, null, 2));
-        showErrorToast(
+        showHapticErrorToast(
           "Sign up failed",
           getClerkErrorMessage(passwordResult?.error),
         );
@@ -403,7 +432,7 @@ function SignUp() {
         }
 
         console.error(JSON.stringify(sendCodeResult.error, null, 2));
-        showErrorToast(
+        showHapticErrorToast(
           "Verification failed",
           "Could not send verification code to email.",
         );
@@ -417,7 +446,7 @@ function SignUp() {
       );
     } catch (error) {
       console.error(error);
-      showErrorToast(
+      showHapticErrorToast(
         "Sign up failed",
         "Something went wrong. Please try again.",
       );
@@ -430,7 +459,7 @@ function SignUp() {
     setLoading(true);
 
     if (!isAuthLoaded || !signUp) {
-      showErrorToast(
+      showHapticErrorToast(
         "Please wait",
         "Authentication is still loading. Try again in a moment.",
       );
@@ -439,7 +468,10 @@ function SignUp() {
     }
 
     if (!verificationCode.trim()) {
-      showErrorToast("Missing code", "Please enter the verification code.");
+      showHapticErrorToast(
+        "Missing code",
+        "Please enter the verification code.",
+      );
       setLoading(false);
       return;
     }
@@ -463,7 +495,7 @@ function SignUp() {
           "Please enter a valid verification code.";
         console.error(JSON.stringify(verifyResult.error, null, 2));
         hideToast();
-        showErrorToast("Invalid code", verifyErrorMessage);
+        showHapticErrorToast("Invalid code", verifyErrorMessage);
         return;
       }
 
@@ -478,7 +510,7 @@ function SignUp() {
     } catch (error) {
       console.error(error);
       hideToast();
-      showErrorToast(
+      showHapticErrorToast(
         "Verification failed",
         "Something went wrong. Please try again.",
       );
@@ -491,7 +523,10 @@ function SignUp() {
     showPendingToast("Coming soon", "Google sign-up is not configured yet.");
     setTimeout(() => {
       hideToast();
-      showErrorToast("Unavailable", "Google sign-up is not configured yet.");
+      showHapticErrorToast(
+        "Unavailable",
+        "Google sign-up is not configured yet.",
+      );
     }, 600);
   };
 
@@ -499,7 +534,7 @@ function SignUp() {
     setLoading(true);
 
     if (!isAuthLoaded || !signUp) {
-      showErrorToast(
+      showHapticErrorToast(
         "Please wait",
         "Authentication is still loading. Try again in a moment.",
       );
@@ -523,7 +558,7 @@ function SignUp() {
           (resendResult.error as any)?.errors?.[0]?.longMessage ??
           "Could not resend verification code.";
         hideToast();
-        showErrorToast("Error", resendErrorMessage);
+        showHapticErrorToast("Error", resendErrorMessage);
         return;
       }
 
@@ -532,7 +567,7 @@ function SignUp() {
     } catch (error) {
       console.error(error);
       hideToast();
-      showErrorToast("Error", "Could not resend verification code.");
+      showHapticErrorToast("Error", "Could not resend verification code.");
     } finally {
       setLoading(false);
     }
@@ -547,6 +582,11 @@ function SignUp() {
         end={{ x: 0.5, y: 1 }}
         style={styles.screen}
       >
+        <Image
+          source={require("../../assets/images/common/prop.png")}
+          style={styles.cardBackdropImage}
+          resizeMode="contain"
+        />
         <KeyboardAwareScrollView
           style={styles.keyboardArea}
           contentContainerStyle={styles.keyboardContent}
@@ -556,7 +596,10 @@ function SignUp() {
           <View style={styles.headerRow}>
             <Pressable
               style={styles.backChip}
-              onPress={() => navigation.goBack()}
+              onPress={() => {
+                triggerSelectionHaptic();
+                navigation.goBack();
+              }}
             >
               <Ionicons name="arrow-back" size={18} color="#232433" />
             </Pressable>
@@ -626,7 +669,10 @@ function SignUp() {
                     styles.primaryButton,
                     loading && styles.buttonDisabled,
                   ]}
-                  onPress={handleCreateAccount}
+                  onPress={() => {
+                    triggerSelectionHaptic();
+                    void handleCreateAccount();
+                  }}
                   disabled={loading}
                   activeOpacity={0.8}
                 >
@@ -655,7 +701,10 @@ function SignUp() {
                     styles.primaryButton,
                     loading && styles.buttonDisabled,
                   ]}
-                  onPress={handleVerifyEmailCode}
+                  onPress={() => {
+                    triggerSelectionHaptic();
+                    void handleVerifyEmailCode();
+                  }}
                   disabled={loading}
                   activeOpacity={0.8}
                 >
@@ -680,7 +729,13 @@ function SignUp() {
               <View style={styles.dividerLine} />
             </View>
 
-            <Pressable style={styles.googleButton} onPress={handleGoogleSignUp}>
+            <Pressable
+              style={styles.googleButton}
+              onPress={() => {
+                triggerSelectionHaptic();
+                handleGoogleSignUp();
+              }}
+            >
               <Image
                 source={require("../../assets/images/auth/google-logo.png")}
                 style={styles.googleLogo}
@@ -693,7 +748,12 @@ function SignUp() {
               <Text style={styles.loginPromptText}>
                 Already have an account ?{" "}
               </Text>
-              <Pressable onPress={() => navigation.goBack()}>
+              <Pressable
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  navigation.goBack();
+                }}
+              >
                 <Text style={styles.loginPromptLink}>Log in</Text>
               </Pressable>
             </View>
@@ -762,6 +822,15 @@ const styles = StyleSheet.create({
     color: "#55586A",
     bottom: 5,
   },
+  cardBackdropImage: {
+    position: "absolute",
+    top: 706,
+    right: -106,
+    tintColor: "#C3B2FF",
+    width: 300,
+    height: 300,
+    zIndex: 0,
+  },
   card: {
     borderRadius: 26,
     backgroundColor: "#FFFFFF",
@@ -773,6 +842,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
     bottom: 15,
+    zIndex: 1,
   },
   fieldGroup: {
     marginBottom: 14,

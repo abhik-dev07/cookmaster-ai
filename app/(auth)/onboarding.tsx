@@ -1,11 +1,13 @@
 import { FontAwesome6, Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect } from "react";
 import {
   Image,
   LayoutChangeEvent,
+  Platform,
   StatusBar,
   StyleSheet,
   View,
@@ -27,6 +29,7 @@ const CTA_HORIZONTAL_PADDING = 10;
 const CTA_THUMB_SIZE = 44;
 const SLIDE_COMPLETE_THRESHOLD = 0.9;
 const CTA_IMAGE_SAFE_SPACE = 120;
+const CTA_HAPTIC_STEP = 0.2;
 
 type AuthStackParamList = {
   onboarding: undefined;
@@ -41,6 +44,7 @@ export default function Onboarding() {
   const thumbX = useSharedValue(0);
   const thumbStartX = useSharedValue(0);
   const chevronPulse = useSharedValue(0);
+  const hapticStep = useSharedValue(-1);
 
   useEffect(() => {
     chevronPulse.value = withRepeat(
@@ -72,14 +76,36 @@ export default function Onboarding() {
     navigation.navigate("sign-in");
   };
 
+  const triggerSlideHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.selectionAsync();
+    }
+  };
+
+  const triggerSlideCompleteHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
   const slideGesture = Gesture.Pan()
     .onBegin(() => {
       thumbStartX.value = thumbX.value;
+      hapticStep.value = -1;
     })
     .onUpdate((event) => {
       const nextX = thumbStartX.value + event.translationX;
       const maxSlide = getMaxSlide();
       thumbX.value = Math.min(Math.max(nextX, 0), maxSlide);
+
+      const progress =
+        maxSlide > 0 ? Math.min(Math.max(thumbX.value / maxSlide, 0), 1) : 0;
+      const nextStep = Math.floor(progress / CTA_HAPTIC_STEP);
+
+      if (nextStep > 0 && nextStep !== hapticStep.value) {
+        hapticStep.value = nextStep;
+        runOnJS(triggerSlideHaptic)();
+      }
     })
     .onEnd(() => {
       const maxSlide = getMaxSlide();
@@ -87,6 +113,7 @@ export default function Onboarding() {
         thumbX.value >= maxSlide * SLIDE_COMPLETE_THRESHOLD;
 
       if (crossedThreshold && maxSlide > 0) {
+        runOnJS(triggerSlideCompleteHaptic)();
         thumbX.value = withTiming(maxSlide, { duration: 120 }, (finished) => {
           if (finished) {
             runOnJS(navigateToSignIn)();
@@ -95,6 +122,7 @@ export default function Onboarding() {
         return;
       }
 
+      hapticStep.value = -1;
       thumbX.value = withTiming(0, { duration: 180 });
     });
 

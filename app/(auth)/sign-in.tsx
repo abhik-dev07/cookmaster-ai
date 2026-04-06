@@ -4,11 +4,13 @@ import {
   type CompositeNavigationProp,
 } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import * as SecureStore from "expo-secure-store";
 import { useContext, useState } from "react";
 import {
   Image,
+  Platform,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -60,13 +62,36 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const triggerSelectionHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.selectionAsync();
+    }
+  };
+
+  const triggerSuccessHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
+  const triggerErrorHaptic = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  const showHapticErrorToast = (title: string, message: string) => {
+    triggerErrorHaptic();
+    showErrorToast(title, message);
+  };
+
   const finalizeSignedInSession = async () => {
     await signIn.finalize({
       navigate: async ({ session }) => {
         try {
           if (session?.currentTask) {
             console.log(session.currentTask);
-            showErrorToast(
+            showHapticErrorToast(
               "Sign in",
               "Could not complete sign-in. Please try again.",
             );
@@ -75,7 +100,7 @@ export default function SignIn() {
 
           const authUserId = (session as any)?.user?.id;
           if (!authUserId) {
-            showErrorToast(
+            showHapticErrorToast(
               "Sign in failed",
               "Could not read your user session. Please try again.",
             );
@@ -124,12 +149,13 @@ export default function SignIn() {
 
           setUser(signedInUser);
           hideToast();
+          triggerSuccessHaptic();
           showSuccessToast("Welcome back", "You have signed in successfully.");
           navigation.getParent()?.navigate("(tabs)");
         } catch (error) {
           console.error("[sign-in] finalize navigate failed", error);
           hideToast();
-          showErrorToast(
+          showHapticErrorToast(
             "Sign in failed",
             "Something went wrong while finishing sign-in.",
           );
@@ -142,7 +168,7 @@ export default function SignIn() {
     setLoading(true);
 
     if (!isAuthLoaded || !signIn) {
-      showErrorToast(
+      showHapticErrorToast(
         "Please wait",
         "Authentication is still loading. Try again in a moment.",
       );
@@ -151,7 +177,10 @@ export default function SignIn() {
     }
 
     if (!emailAddress.trim() || !password.trim()) {
-      showErrorToast("Missing fields", "Please enter email and password.");
+      showHapticErrorToast(
+        "Missing fields",
+        "Please enter email and password.",
+      );
       setLoading(false);
       return;
     }
@@ -166,7 +195,7 @@ export default function SignIn() {
 
       if (signInAttempt.error) {
         console.error(JSON.stringify(signInAttempt.error, null, 2));
-        showErrorToast(
+        showHapticErrorToast(
           "Sign in failed",
           "Invalid credentials. Please try again.",
         );
@@ -178,7 +207,7 @@ export default function SignIn() {
 
       if (signInStatus !== "complete") {
         if (signInStatus === "needs_second_factor") {
-          showErrorToast(
+          showHapticErrorToast(
             "Password sign-in blocked",
             "This account requires multi-factor authentication in Clerk.",
           );
@@ -186,14 +215,14 @@ export default function SignIn() {
         }
 
         if (signInStatus === "needs_client_trust") {
-          showErrorToast(
+          showHapticErrorToast(
             "Password sign-in blocked",
             "Clerk is requiring device verification for this login. Disable it in Clerk dashboard security settings if you want password-only sign-in.",
           );
           return;
         }
 
-        showErrorToast(
+        showHapticErrorToast(
           "Sign in incomplete",
           "Your account could not be signed in yet. Please try again.",
         );
@@ -204,7 +233,7 @@ export default function SignIn() {
       return;
     } catch (error) {
       console.error(error);
-      showErrorToast(
+      showHapticErrorToast(
         "Sign in failed",
         "Something went wrong. Please try again.",
       );
@@ -217,7 +246,10 @@ export default function SignIn() {
     showPendingToast("Coming soon", "Google sign-in is not configured yet.");
     setTimeout(() => {
       hideToast();
-      showErrorToast("Unavailable", "Google sign-in is not configured yet.");
+      showHapticErrorToast(
+        "Unavailable",
+        "Google sign-in is not configured yet.",
+      );
     }, 600);
   };
 
@@ -230,6 +262,12 @@ export default function SignIn() {
         end={{ x: 0.5, y: 1 }}
         style={styles.screen}
       >
+        <Image
+          source={require("../../assets/images/common/prop.png")}
+          style={styles.cardBackdropImage}
+          resizeMode="contain"
+        />
+
         <KeyboardAwareScrollView
           style={styles.keyboardArea}
           contentContainerStyle={styles.keyboardContent}
@@ -239,7 +277,10 @@ export default function SignIn() {
           <View style={styles.headerRow}>
             <Pressable
               style={styles.backChip}
-              onPress={() => navigation.goBack()}
+              onPress={() => {
+                triggerSelectionHaptic();
+                navigation.goBack();
+              }}
             >
               <Ionicons name="arrow-back" size={18} color="#232433" />
             </Pressable>
@@ -293,7 +334,10 @@ export default function SignIn() {
 
             <TouchableOpacity
               style={[styles.primaryButton, loading && styles.buttonDisabled]}
-              onPress={handleEmailPasswordSignIn}
+              onPress={() => {
+                triggerSelectionHaptic();
+                void handleEmailPasswordSignIn();
+              }}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -308,7 +352,13 @@ export default function SignIn() {
               <View style={styles.dividerLine} />
             </View>
 
-            <Pressable style={styles.googleButton} onPress={handleGoogleSignIn}>
+            <Pressable
+              style={styles.googleButton}
+              onPress={() => {
+                triggerSelectionHaptic();
+                handleGoogleSignIn();
+              }}
+            >
               <Image
                 source={require("../../assets/images/auth/google-logo.png")}
                 style={styles.googleLogo}
@@ -321,7 +371,12 @@ export default function SignIn() {
               <Text style={styles.signupPromptText}>
                 Don&apos;t have account ?{" "}
               </Text>
-              <Pressable onPress={() => navigation.navigate("sign-up")}>
+              <Pressable
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  navigation.navigate("sign-up");
+                }}
+              >
                 <Text style={styles.signupPromptLink}>Create an account</Text>
               </Pressable>
             </View>
@@ -387,6 +442,15 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: "#55586A",
   },
+  cardBackdropImage: {
+    position: "absolute",
+    top: 706,
+    left: -106,
+    tintColor: "#C3B2FF",
+    width: 300,
+    height: 300,
+    zIndex: 0,
+  },
   card: {
     borderRadius: 26,
     backgroundColor: "#FFFFFF",
@@ -397,6 +461,7 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
+    zIndex: 1,
   },
   fieldGroup: {
     marginBottom: 14,
