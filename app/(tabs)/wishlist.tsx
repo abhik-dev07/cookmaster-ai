@@ -1,4 +1,4 @@
-import RecipeCard from "@/components/RecipeCard";
+import RecipeCard from "@/components/Common/ui/RecipeCard";
 import CarousalSaved from "@/components/ui/Wishlist/CarousalSaved";
 import Collection from "@/components/ui/Wishlist/Collection";
 import { FONT_FAMILY } from "@/constants/fonts";

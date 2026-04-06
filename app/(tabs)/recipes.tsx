@@ -1,6 +1,6 @@
-import RecipeCard from "@/components/RecipeCard";
+import RecipeCard from "@/components/Common/ui/RecipeCard";
 import CarousalRecipe from "@/components/ui/Recipes/CarousalRecipe";
-import SearchArea from "@/components/ui/Recipes/SearchArea";
+import SearchAreaRecipes from "@/components/ui/Recipes/SearchAreaRecipes";
 import { FONT_FAMILY } from "@/constants/fonts";
 import React from "react";
 import {
@@ -47,7 +47,7 @@ export default function RecipesScreen() {
         )}
       >
         <View style={styles.paddedSection}>
-          <SearchArea />
+          <SearchAreaRecipes />
         </View>
         <CarousalRecipe />
         <View style={styles.paddedSection}>

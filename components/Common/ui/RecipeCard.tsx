@@ -164,7 +164,7 @@ export default function RecipeCard({
             >
               <View style={styles.pickImageWrap}>
                 <Image
-                  source={require("../assets/images/common/food.jpg")}
+                  source={require("../../../assets/images/common/food.jpg")}
                   style={styles.pickImage}
                   contentFit="cover"
                 />
@@ -185,7 +185,7 @@ export default function RecipeCard({
               </View>
 
               <Image
-                source={require("../assets/images/common/prop.png")}
+                source={require("../../../assets/images/common/prop.png")}
                 style={[
                   styles.pickProp,
                   index % 2 === 0 ? styles.pickPropLeft : styles.pickPropRight,

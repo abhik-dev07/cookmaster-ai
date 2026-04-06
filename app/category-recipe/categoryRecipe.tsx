@@ -1,4 +1,4 @@
-import RecipeCard from "@/components/RecipeCard";
+import RecipeCard from "@/components/Common/ui/RecipeCard";
 import FilterCategory from "@/components/ui/Catagory/FilterCategory";
 import Header from "@/components/ui/Catagory/Header";
 import React from "react";

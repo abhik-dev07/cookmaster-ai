@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import { ToastConfig } from "react-native-toast-message";
 
-import { FONT_FAMILY } from "../constants/fonts";
+import { FONT_FAMILY } from "../../../constants/fonts";
 
 type ToastVariant = "success" | "error" | "pending";
 

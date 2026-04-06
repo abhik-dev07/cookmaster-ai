@@ -1,7 +1,7 @@
 import Category from "@/components/ui/Home/Category";
 import Feature from "@/components/ui/Home/Feature";
 import Header from "@/components/ui/Home/Header";
-import SearchArea from "@/components/ui/Home/SearchArea";
+import SearchAreaHome from "@/components/ui/Home/SearchAreaHome";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 export default function HomeScreen() {
@@ -14,7 +14,7 @@ export default function HomeScreen() {
       >
         <Header />
 
-        <SearchArea />
+        <SearchAreaHome />
 
         <Category />
 

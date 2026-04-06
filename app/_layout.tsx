@@ -9,7 +9,7 @@ import { StatusBar, StyleProp, Text, TextInput, TextStyle } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
-import { appToastConfig } from "../components/AppToast";
+import { appToastConfig } from "../components/Common/ui/AppToast";
 import { FONT_FAMILY } from "../constants/fonts";
 import { UserContextProvider } from "../context/UserContext";
 import AuthRoutesLayout from "./(auth)/_layout";
