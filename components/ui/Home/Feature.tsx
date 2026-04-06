@@ -3,10 +3,17 @@ import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import PROP_IMAGE from "../../../assets/images/common/prop.png";
 
@@ -54,6 +61,7 @@ export default function Feature() {
       NativeStackNavigationProp<RootStackParamList, "recipeDetails">
     >();
   const { width, useCompactCard } = useResponsiveLayout();
+  const [likedRecipeIds, setLikedRecipeIds] = React.useState<string[]>([]);
 
   const featuredCardWidth = useMemo(() => {
     const horizontalPadding = 16;
@@ -61,99 +69,135 @@ export default function Feature() {
     return Math.min(safeInnerWidth, 420);
   }, [width]);
 
+  const triggerHaptics = async () => {
+    if (Platform.OS !== "web") {
+      await Haptics.selectionAsync();
+    }
+  };
+
+  const handleToggleLiked = async (recipeId: string) => {
+    await triggerHaptics();
+    setLikedRecipeIds((prev) =>
+      prev.includes(recipeId)
+        ? prev.filter((id) => id !== recipeId)
+        : [...prev, recipeId],
+    );
+  };
+
+  const navigateToRecipeDetails = async (
+    recipe: (typeof RECENT_GENERATED_RECIPES)[number],
+  ) => {
+    await triggerHaptics();
+    navigation.navigate("recipeDetails", {
+      recipeId: recipe.id,
+      title: recipe.title,
+      description: recipe.description,
+    });
+  };
+
   return (
     <View style={styles.content}>
-      {RECENT_GENERATED_RECIPES.slice(0, 3).map((recipe) => (
-        <LinearGradient
-          key={recipe.title}
-          colors={[recipe.color, recipe.color]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[
-            styles.featuredCard,
-            {
-              width: featuredCardWidth,
-              minHeight: useCompactCard ? 336 : 312,
-            },
-          ]}
-        >
-          <Image
-            source={PROP_IMAGE}
+      {RECENT_GENERATED_RECIPES.slice(0, 3).map((recipe) => {
+        const liked = likedRecipeIds.includes(recipe.id);
+
+        return (
+          <LinearGradient
+            key={recipe.id}
+            colors={[recipe.color, recipe.color]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={[
-              styles.propBackdrop,
-              useCompactCard && styles.propBackdropCompact,
-              { tintColor: recipe.propTint },
-            ]}
-            contentFit="contain"
-          />
-
-          <TouchableOpacity activeOpacity={0.85} style={styles.favoriteButton}>
-            <Ionicons name="heart" size={18} color="#13131E" />
-          </TouchableOpacity>
-
-          <View style={styles.cardTextWrap}>
-            <Text
-              style={[
-                styles.cardTitle,
-                useCompactCard && styles.cardTitleCompact,
-              ]}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-              maxFontSizeMultiplier={1.1}
-            >
-              {recipe.title}
-            </Text>
-
-            <View style={styles.timeRow}>
-              <Ionicons name="time" size={15} color="#121228" />
-              <Text
-                style={[
-                  styles.timeText,
-                  useCompactCard && styles.timeTextCompact,
-                ]}
-                maxFontSizeMultiplier={1.15}
-              >
-                {recipe.duration}
-              </Text>
-            </View>
-          </View>
-
-          <View
-            style={[
-              styles.recipeImageWrap,
-              useCompactCard && styles.recipeImageWrapCompact,
+              styles.featuredCard,
+              {
+                width: featuredCardWidth,
+                minHeight: useCompactCard ? 336 : 312,
+              },
             ]}
           >
             <Image
-              source={require("../../../assets/images/common/food.jpg")}
-              style={styles.recipeImage}
-              contentFit="cover"
-            />
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.seeRecipeButton}
-            onPress={() => {
-              navigation.navigate("recipeDetails", {
-                recipeId: recipe.id,
-                title: recipe.title,
-                description: recipe.description,
-              });
-            }}
-          >
-            <Text
+              source={PROP_IMAGE}
               style={[
-                styles.seeRecipeText,
-                useCompactCard && styles.seeRecipeTextCompact,
+                styles.propBackdrop,
+                useCompactCard && styles.propBackdropCompact,
+                { tintColor: recipe.propTint },
               ]}
-              maxFontSizeMultiplier={1.15}
+              contentFit="contain"
+            />
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.favoriteButton}
+              onPress={() => {
+                void handleToggleLiked(recipe.id);
+              }}
             >
-              See Recipe
-            </Text>
-          </TouchableOpacity>
-        </LinearGradient>
-      ))}
+              <Ionicons
+                name={liked ? "heart" : "heart-outline"}
+                size={18}
+                color={liked ? "#F64B67" : "#13131E"}
+              />
+            </TouchableOpacity>
+
+            <View style={styles.cardTextWrap}>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  useCompactCard && styles.cardTitleCompact,
+                ]}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                maxFontSizeMultiplier={1.1}
+              >
+                {recipe.title}
+              </Text>
+
+              <View style={styles.timeRow}>
+                <Ionicons name="time" size={15} color="#121228" />
+                <Text
+                  style={[
+                    styles.timeText,
+                    useCompactCard && styles.timeTextCompact,
+                  ]}
+                  maxFontSizeMultiplier={1.15}
+                >
+                  {recipe.duration}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.recipeImageWrap,
+                useCompactCard && styles.recipeImageWrapCompact,
+              ]}
+            >
+              <Image
+                source={require("../../../assets/images/common/food.jpg")}
+                style={styles.recipeImage}
+                contentFit="cover"
+              />
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.seeRecipeButton}
+              onPress={() => {
+                void navigateToRecipeDetails(recipe);
+              }}
+            >
+              <Text
+                style={[
+                  styles.seeRecipeText,
+                  useCompactCard && styles.seeRecipeTextCompact,
+                ]}
+                maxFontSizeMultiplier={1.15}
+              >
+                See Recipe
+              </Text>
+            </TouchableOpacity>
+          </LinearGradient>
+        );
+      })}
     </View>
   );
 }
