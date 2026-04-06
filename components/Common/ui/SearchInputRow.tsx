@@ -1,7 +1,9 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { Feather, FontAwesome5, Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import React from "react";
 import {
+  Platform,
   StyleProp,
   StyleSheet,
   TextInput,
@@ -24,6 +26,18 @@ export default function SearchInputRow({
   style,
 }: SearchInputRowProps) {
   const isHomeVariant = variant === "home";
+
+  const triggerSelectionHaptics = async () => {
+    if (Platform.OS !== "web") {
+      await Haptics.selectionAsync();
+    }
+  };
+
+  const triggerPressHaptics = async () => {
+    if (Platform.OS !== "web") {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
 
   return (
     <View
@@ -57,11 +71,17 @@ export default function SearchInputRow({
             isHomeVariant && isCompactDisplay ? styles.inputHomeCompact : null,
           ]}
           maxFontSizeMultiplier={1.1}
+          onFocus={() => {
+            void triggerSelectionHaptics();
+          }}
         />
       </View>
 
       <TouchableOpacity
         activeOpacity={0.85}
+        onPressIn={() => {
+          void triggerPressHaptics();
+        }}
         style={[
           styles.searchButton,
           isHomeVariant ? styles.searchButtonHome : styles.searchButtonRecipes,

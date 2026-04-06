@@ -1,6 +1,7 @@
 import RecipeCard from "@/components/Common/ui/RecipeCard";
 import FilterCategory from "@/components/ui/Catagory/FilterCategory";
 import Header from "@/components/ui/Catagory/Header";
+import { FONT_FAMILY } from "@/constants/fonts";
 import React from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
@@ -32,7 +33,19 @@ export default function CategoryRecipe() {
           { useNativeDriver: true },
         )}
       >
-        <RecipeCard mode="category" selectedFilter={selectedFilter} />
+        <View style={styles.sectionHeaderTopPicks}>
+          <Animated.Text
+            style={[styles.sectionTitle, { opacity: sectionTitleOpacity }]}
+          >
+            {selectedFilter} Recipes
+          </Animated.Text>
+        </View>
+
+        <RecipeCard
+          mode="category"
+          selectedFilter={selectedFilter}
+          showHeader={false}
+        />
       </Animated.ScrollView>
     </View>
   );
@@ -51,5 +64,19 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 120,
+  },
+  sectionHeaderTopPicks: {
+    marginTop: 18,
+    marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    color: "#171B2A",
+    fontSize: 26,
+    lineHeight: 30,
+    letterSpacing: -0.4,
+    fontFamily: FONT_FAMILY.bold,
   },
 });
