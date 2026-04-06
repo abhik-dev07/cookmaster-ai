@@ -83,6 +83,49 @@ export const upsertFromAuth = mutation({
   },
 });
 
+export const updateProfileName = mutation({
+  args: {
+    clerkUserId: v.string(),
+    name: v.string(),
+  },
+  returns: v.object({
+    _id: v.id("users"),
+    _creationTime: v.number(),
+    clerkUserId: v.string(),
+    email: v.string(),
+    name: v.string(),
+    picture: v.optional(v.string()),
+    credits: v.number(),
+    pref: v.optional(v.any()),
+    created_at: v.string(),
+    updated_at: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) =>
+        q.eq("clerkUserId", args.clerkUserId),
+      )
+      .unique();
+
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+
+    const now = new Date().toISOString();
+    await ctx.db.patch(existingUser._id, {
+      name: args.name,
+      updated_at: now,
+    });
+
+    return {
+      ...existingUser,
+      name: args.name,
+      updated_at: now,
+    };
+  },
+});
+
 export const upsertFromClerkWebhook = internalMutation({
   args: {
     clerkUserId: v.string(),
