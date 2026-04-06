@@ -96,19 +96,34 @@ export default function RootLayout() {
           >
             <KeyboardProvider>
               <NativeStack.Navigator
-                initialRouteName="index"
+                initialRouteName="loader"
                 screenOptions={{
                   headerShown: false,
                   contentStyle: { backgroundColor: APP_BACKGROUND_COLOR },
                 }}
               >
                 <NativeStack.Screen name="index" component={Index} />
-                <NativeStack.Screen name="loader" component={Loader} />
+                <NativeStack.Screen
+                  name="loader"
+                  component={Loader}
+                  options={{
+                    animation: "fade",
+                  }}
+                />
                 <NativeStack.Screen
                   name="(auth)"
                   component={AuthRoutesLayout}
+                  options={{
+                    animation: "fade",
+                  }}
                 />
-                <NativeStack.Screen name="(tabs)" component={TabsLayout} />
+                <NativeStack.Screen
+                  name="(tabs)"
+                  component={TabsLayout}
+                  options={{
+                    animation: "fade",
+                  }}
+                />
                 <NativeStack.Screen
                   name="categoryRecipe"
                   component={CategoryRecipeScreen}

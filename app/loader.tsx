@@ -1,24 +1,35 @@
 import { useAuth } from "@clerk/expo";
-import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import LottieView from "lottie-react-native";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 
+type RootStackParamList = {
+  index: undefined;
+  loader: undefined;
+  "(auth)": undefined;
+  "(tabs)": undefined;
+  categoryRecipe: undefined;
+  recipeDetails: undefined;
+};
+
 export default function Loader() {
   const { isSignedIn, isLoaded } = useAuth();
-  const router = useRouter();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     if (!isLoaded) return;
 
     if (isSignedIn) {
       // User is logged in, navigate to home
-      router.replace("/(tabs)/home");
+      navigation.replace("(tabs)");
     } else {
       // User not logged in, show onboarding
-      router.replace("/(auth)/onboarding");
+      navigation.replace("(auth)");
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn, navigation]);
 
   return (
     <View style={styles.container}>
