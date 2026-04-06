@@ -1,9 +1,13 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import React from "react";
 import {
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -50,13 +54,50 @@ const SAVED_RECIPES = [
 
 type SavedRecipeItem = (typeof SAVED_RECIPES)[number];
 
+type RootStackParamList = {
+  recipeDetails: {
+    recipeId: string;
+    title: string;
+    description: string;
+  };
+};
+
 const HORIZONTAL_GUTTER = 16;
 const CAROUSEL_HEIGHT = 430;
 
 export default function CarousalSaved() {
+  const navigation =
+    useNavigation<
+      NativeStackNavigationProp<RootStackParamList, "recipeDetails">
+    >();
   const { isCompactDisplay, shouldRemoveTopMargin } = useResponsiveLayout();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = screenWidth;
+  const [lovedRecipeIds, setLovedRecipeIds] = React.useState<string[]>([]);
+
+  const triggerHaptics = async () => {
+    if (Platform.OS !== "web") {
+      await Haptics.selectionAsync();
+    }
+  };
+
+  const navigateToRecipeDetails = async (item: SavedRecipeItem) => {
+    await triggerHaptics();
+    navigation.navigate("recipeDetails", {
+      recipeId: item.id,
+      title: item.title,
+      description: item.description,
+    });
+  };
+
+  const handleToggleLoved = async (recipeId: string) => {
+    await triggerHaptics();
+    setLovedRecipeIds((prev) =>
+      prev.includes(recipeId)
+        ? prev.filter((id) => id !== recipeId)
+        : [...prev, recipeId],
+    );
+  };
 
   return (
     <View>
@@ -98,70 +139,84 @@ export default function CarousalSaved() {
             parallaxScrollingOffset: 56,
             parallaxAdjacentItemScale: 0.88,
           }}
-          renderItem={({ item }) => (
-            <View style={styles.itemWrap}>
-              <View
-                style={[styles.recipeCard, { backgroundColor: item.color }]}
-              >
-                <View style={styles.recipeImageWrap}>
-                  <Image
-                    source={require("../../../assets/images/common/food.jpg")}
-                    style={styles.recipeImage}
-                    contentFit="cover"
-                  />
-                </View>
+          renderItem={({ item }) => {
+            const loved = lovedRecipeIds.includes(item.id);
 
-                <Image
-                  source={require("../../../assets/images/common/prop.png")}
-                  style={[styles.randomProp, { tintColor: item.propTint }]}
-                  contentFit="contain"
-                />
-
-                <View style={styles.recipeTextWrap}>
-                  <Text numberOfLines={1} style={styles.recipeTitle}>
-                    {item.title}
-                  </Text>
-                  <Text numberOfLines={2} style={styles.recipeDescription}>
-                    {item.description}
-                  </Text>
-
-                  <View style={styles.metaRow}>
-                    <View style={styles.metaPill}>
-                      <Ionicons name="time-outline" size={14} color="#1C1E2D" />
-                      <Text style={styles.metaText}>{item.time}</Text>
-                    </View>
-                    <View style={styles.metaPill}>
-                      <Ionicons
-                        name="flame-outline"
-                        size={14}
-                        color="#1C1E2D"
-                      />
-                      <Text style={styles.metaText}>{item.kcal}</Text>
-                    </View>
+            return (
+              <View style={styles.itemWrap}>
+                <View
+                  style={[styles.recipeCard, { backgroundColor: item.color }]}
+                >
+                  <View style={styles.recipeImageWrap}>
+                    <Image
+                      source={require("../../../assets/images/common/food.jpg")}
+                      style={styles.recipeImage}
+                      contentFit="cover"
+                    />
                   </View>
 
-                  <View style={styles.actionRow}>
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      style={styles.primaryButton}
-                    >
-                      <Text style={styles.primaryButtonText}>Cook again</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      style={styles.secondaryButton}
-                    >
-                      <MaterialCommunityIcons
-                        name="heart"
-                        size={18}
-                        color="#1A1C2A"
-                      />
-                    </TouchableOpacity>
+                  <Image
+                    source={require("../../../assets/images/common/prop.png")}
+                    style={[styles.randomProp, { tintColor: item.propTint }]}
+                    contentFit="contain"
+                  />
+
+                  <View style={styles.recipeTextWrap}>
+                    <Text numberOfLines={1} style={styles.recipeTitle}>
+                      {item.title}
+                    </Text>
+                    <Text numberOfLines={2} style={styles.recipeDescription}>
+                      {item.description}
+                    </Text>
+
+                    <View style={styles.metaRow}>
+                      <View style={styles.metaPill}>
+                        <Ionicons
+                          name="time-outline"
+                          size={14}
+                          color="#1C1E2D"
+                        />
+                        <Text style={styles.metaText}>{item.time}</Text>
+                      </View>
+                      <View style={styles.metaPill}>
+                        <Ionicons
+                          name="flame-outline"
+                          size={14}
+                          color="#1C1E2D"
+                        />
+                        <Text style={styles.metaText}>{item.kcal}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.actionRow}>
+                      <TouchableOpacity
+                        activeOpacity={0.85}
+                        style={styles.primaryButton}
+                        onPress={() => {
+                          void navigateToRecipeDetails(item);
+                        }}
+                      >
+                        <Text style={styles.primaryButtonText}>Cook again</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        activeOpacity={0.85}
+                        style={styles.secondaryButton}
+                        onPress={() => {
+                          void handleToggleLoved(item.id);
+                        }}
+                      >
+                        <MaterialCommunityIcons
+                          name={loved ? "heart" : "heart-outline"}
+                          size={18}
+                          color={loved ? "#F64B67" : "#1A1C2A"}
+                        />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
-          )}
+            );
+          }}
         />
       </View>
     </View>

@@ -1,8 +1,18 @@
 import { FONT_FAMILY } from "@/constants/fonts";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import React from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 
 const RANDOM_RECIPES = [
@@ -42,12 +52,30 @@ const RANDOM_RECIPES = [
 
 type RecipeItem = (typeof RANDOM_RECIPES)[number];
 
+type RootStackParamList = {
+  recipeDetails: {
+    recipeId: string;
+    title: string;
+    description: string;
+  };
+};
+
 const HORIZONTAL_GUTTER = 16;
 const CAROUSEL_HEIGHT = 360;
 
 export default function CarousalRecipe() {
+  const navigation =
+    useNavigation<
+      NativeStackNavigationProp<RootStackParamList, "recipeDetails">
+    >();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = screenWidth;
+
+  const triggerHaptics = async () => {
+    if (Platform.OS !== "web") {
+      await Haptics.selectionAsync();
+    }
+  };
 
   return (
     <View style={styles.carouselWrap}>
@@ -69,7 +97,18 @@ export default function CarousalRecipe() {
           parallaxAdjacentItemScale: 0.88,
         }}
         renderItem={({ item }) => (
-          <View style={styles.itemWrap}>
+          <TouchableOpacity
+            activeOpacity={0.92}
+            onPress={async () => {
+              await triggerHaptics();
+              navigation.navigate("recipeDetails", {
+                recipeId: item.id,
+                title: item.title,
+                description: item.description,
+              });
+            }}
+            style={styles.itemWrap}
+          >
             <View style={[styles.randomCard, { backgroundColor: item.color }]}>
               <View style={styles.randomImageWrap}>
                 <Image
@@ -103,7 +142,7 @@ export default function CarousalRecipe() {
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>
